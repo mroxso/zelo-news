@@ -25,7 +25,7 @@ export function BlogHeader() {
           {/* Desktop Navigation */}
           {user && (
             <nav className="hidden sm:flex items-center gap-2">
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="outline" size="sm" asChild>
                 <Link to="/create">
                   <PenSquare className="h-4 w-4 mr-2" />
                   New Post
