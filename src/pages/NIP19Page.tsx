@@ -1,5 +1,9 @@
 import { nip19 } from 'nostr-tools';
 import { useParams } from 'react-router-dom';
+import ProfilePage from './ProfilePage';
+import BlogPostPage from './BlogPostPage';
+import { NotePage } from './NotePage';
+import { EventPage } from './EventPage';
 import NotFound from './NotFound';
 
 export function NIP19Page() {
@@ -16,25 +20,34 @@ export function NIP19Page() {
     return <NotFound />;
   }
 
-  const { type } = decoded;
+  const { type, data } = decoded;
 
   switch (type) {
     case 'npub':
     case 'nprofile':
-      // AI agent should implement profile view here
-      return <div>Profile placeholder</div>;
+      // Render profile page - ProfilePage will handle validation
+      return <ProfilePage />;
 
     case 'note':
-      // AI agent should implement note view here
-      return <div>Note placeholder</div>;
+      // Render kind:1 text note
+      return <NotePage eventId={data as string} />;
 
-    case 'nevent':
-      // AI agent should implement event view here
-      return <div>Event placeholder</div>;
+    case 'nevent': {
+      // Render any event with optional relay hints and author
+      const eventData = data as { id: string; relays?: string[]; author?: string; kind?: number };
+      return (
+        <EventPage 
+          eventId={eventData.id}
+          relayHints={eventData.relays}
+          authorPubkey={eventData.author}
+          kind={eventData.kind}
+        />
+      );
+    }
 
     case 'naddr':
-      // AI agent should implement addressable event view here
-      return <div>Addressable event placeholder</div>;
+      // Render addressable event (blog post) - BlogPostPage will handle validation
+      return <BlogPostPage />;
 
     default:
       return <NotFound />;

@@ -17,7 +17,7 @@ import { genUserName } from '@/lib/genUserName';
 import NotFound from '@/pages/NotFound';
 
 export default function BlogPostPage() {
-  const { naddr } = useParams<{ naddr: string }>();
+  const { nip19: naddr } = useParams<{ nip19: string }>();
   const navigate = useNavigate();
   const { user } = useCurrentUser();
 
@@ -25,6 +25,7 @@ export default function BlogPostPage() {
   let pubkey = '';
   let identifier = '';
   let kind = 0;
+  let isValidNaddr = false;
 
   try {
     if (naddr?.startsWith('naddr1')) {
@@ -33,6 +34,7 @@ export default function BlogPostPage() {
         pubkey = decoded.data.pubkey;
         identifier = decoded.data.identifier;
         kind = decoded.data.kind;
+        isValidNaddr = true;
       }
     }
   } catch (error) {
@@ -51,7 +53,7 @@ export default function BlogPostPage() {
   const isPostAuthor = user?.pubkey === post?.pubkey;
   const hasReacted = reactions?.likes.some(like => like.pubkey === user?.pubkey);
 
-  if (!naddr || kind !== 30023) {
+  if (!isValidNaddr || !naddr || kind !== 30023) {
     return <NotFound />;
   }
 
@@ -120,7 +122,7 @@ export default function BlogPostPage() {
 
           {/* Author info and metadata */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+            <Link to={`/${nip19.npubEncode(pubkey)}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                 <AvatarImage src={metadata?.picture} alt={displayName} />
                 <AvatarFallback>{displayName[0]?.toUpperCase()}</AvatarFallback>
@@ -138,7 +140,7 @@ export default function BlogPostPage() {
                   </time>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {isPostAuthor && (
               <Button
