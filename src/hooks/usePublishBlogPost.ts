@@ -52,7 +52,7 @@ export function usePublishBlogPost() {
       }
 
       // Add client tag
-      tags.push(['client', 'Nostr Blog']);
+      // tags.push(['client', 'zelo.news']);
 
       const eventTemplate = {
         kind: 30023,
