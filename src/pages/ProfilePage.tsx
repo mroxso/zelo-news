@@ -6,13 +6,18 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, Link2, Mail } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Link2, Mail, Copy, Check } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import { RelaySelector } from '@/components/RelaySelector';
+import { useToast } from '@/hooks/useToast';
 import NotFound from '@/pages/NotFound';
+import { useState } from 'react';
 
 export default function ProfilePage() {
   const { nip19: npub } = useParams<{ nip19: string }>();
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
 
   // Decode npub/nprofile to get pubkey
   let pubkey = '';
@@ -47,6 +52,27 @@ export default function ProfilePage() {
   const about = metadata?.about;
   const website = metadata?.website;
   const nip05 = metadata?.nip05;
+
+  // Generate npub for copy button
+  const userNpub = pubkey ? nip19.npubEncode(pubkey) : '';
+
+  const handleCopyNpub = async () => {
+    try {
+      await navigator.clipboard.writeText(userNpub);
+      setCopied(true);
+      toast({
+        title: "Copied!",
+        description: "npub copied to clipboard",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy npub to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
 
   // If not a valid profile identifier, show 404
   if (!isValidProfile || !pubkey) {
@@ -127,7 +153,27 @@ export default function ProfilePage() {
               {/* User Info */}
               <div className="flex-1 space-y-4">
                 <div className="space-y-1">
-                  <h1 className="text-2xl md:text-3xl font-bold">{displayName}</h1>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h1 className="text-2xl md:text-3xl font-bold">{displayName}</h1>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyNpub}
+                      className="gap-2"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="h-4 w-4" />
+                          <span className="hidden sm:inline">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          <span className="hidden sm:inline">Copy npub</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
                   {metadata?.name && metadata.name !== displayName && (
                     <p className="text-muted-foreground">@{userName}</p>
                   )}
