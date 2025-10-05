@@ -7,6 +7,7 @@ import CreatePostPage from "./pages/CreatePostPage";
 import EditPostPage from "./pages/EditPostPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
 import { BookmarksPage } from "./pages/BookmarksPage";
+import FollowingPage from "./pages/FollowingPage";
 import { NIP19Page } from "./pages/NIP19Page";
 import NotFound from "./pages/NotFound";
 
@@ -21,6 +22,7 @@ export function AppRouter() {
           <Route path="/edit/:identifier" element={<EditPostPage />} />
           <Route path="/search" element={<SearchResultsPage />} />
           <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/following" element={<FollowingPage />} />
           {/* NIP-19 route for all Nostr identifiers (npub, nprofile, naddr, note, nevent) */}
           <Route path="/:nip19" element={<NIP19Page />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -16,7 +16,7 @@ export function BookmarksPage() {
   const isLoading = isLoadingBookmarks || isLoadingArticles;
 
   return (
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Bookmark className="h-8 w-8" />
