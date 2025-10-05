@@ -1,5 +1,5 @@
 import { useParams, Navigate } from 'react-router-dom';
-import { BlogPostForm } from '@/components/BlogPostForm';
+import { ProfessionalBlogPostForm } from '@/components/ProfessionalBlogPostForm';
 
 export default function EditPostPage() {
   const { identifier } = useParams<{ identifier: string }>();
@@ -9,8 +9,8 @@ export default function EditPostPage() {
   }
 
   return (
-    <div className="container max-w-4xl py-8">
-      <BlogPostForm editIdentifier={identifier} />
+    <div className="container max-w-7xl py-6 px-4 sm:px-6 lg:px-8">
+      <ProfessionalBlogPostForm editIdentifier={identifier} />
     </div>
   );
 }
