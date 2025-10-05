@@ -15,10 +15,41 @@ interface MarkdownContentProps {
  */
 export function MarkdownContent({ content, className }: MarkdownContentProps) {
   return (
-    <div className={cn('prose prose-slate dark:prose-invert max-w-none break-words overflow-wrap-anywhere', className)}>
+    <div className={cn('prose prose-slate dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-h4:text-xl prose-h5:text-lg prose-h6:text-base max-w-none break-words overflow-wrap-anywhere', className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
+          // Custom heading renderers with explicit styling
+          h1: ({ node, children, ...props }) => (
+            <h1 className="text-4xl font-bold mt-8 mb-4" {...props}>
+              {children}
+            </h1>
+          ),
+          h2: ({ node, children, ...props }) => (
+            <h2 className="text-3xl font-bold mt-6 mb-3" {...props}>
+              {children}
+            </h2>
+          ),
+          h3: ({ node, children, ...props }) => (
+            <h3 className="text-2xl font-bold mt-5 mb-2" {...props}>
+              {children}
+            </h3>
+          ),
+          h4: ({ node, children, ...props }) => (
+            <h4 className="text-xl font-bold mt-4 mb-2" {...props}>
+              {children}
+            </h4>
+          ),
+          h5: ({ node, children, ...props }) => (
+            <h5 className="text-lg font-bold mt-3 mb-1" {...props}>
+              {children}
+            </h5>
+          ),
+          h6: ({ node, children, ...props }) => (
+            <h6 className="text-base font-bold mt-2 mb-1" {...props}>
+              {children}
+            </h6>
+          ),
           // Custom link renderer to handle nostr: URIs
           a: ({ node, href, children, ...props }) => {
             // Handle nostr: URIs
