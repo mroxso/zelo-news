@@ -1,6 +1,7 @@
 import { SearchBar } from '@/components/SearchBar';
 import { LatestArticles } from '@/components/LatestArticles';
 import { LatestInHashtag } from '@/components/LatestInHashtag';
+import { TrendingTags } from '@/components/TrendingTags';
 import { Music, Leaf, BrainCircuit, Bitcoin } from 'lucide-react';
 
 export default function BlogHomePage() {
@@ -12,6 +13,9 @@ export default function BlogHomePage() {
         <div className="max-w-2xl mx-auto">
           <SearchBar />
         </div>
+
+        {/* Trending Tags */}
+        <TrendingTags />
 
         {/* Latest Articles */}
         <LatestArticles />
