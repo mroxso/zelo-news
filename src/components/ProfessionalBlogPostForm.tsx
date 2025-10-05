@@ -258,7 +258,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {editIdentifier ? 'Edit Article' : 'Write New Article'}
+            {editIdentifier ? 'Edit Article' : 'New Article'}
           </h1>
           <p className="text-muted-foreground mt-1">
             {editIdentifier ? 'Update your article' : 'Share your thoughts with the world'}
@@ -437,7 +437,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
           <CardTitle className="text-lg">Content</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`${isMobile ? 'min-h-[400px]' : 'min-h-[600px]'}`}>
+          <div >
             <Editor
               editorSerializedState={editorState}
               onSerializedChange={(value) => setEditorState(value)}

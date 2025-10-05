@@ -1,8 +1,14 @@
 import { useState } from "react"
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary"
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin"
+import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin"
+import { ListPlugin } from "@lexical/react/LexicalListPlugin"
+import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin"
+import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin"
+import { TRANSFORMERS } from "@lexical/markdown"
 
 import { ContentEditable } from "@/components/editor/editor-ui/content-editable"
+import { ToolbarPlugin } from "@/components/editor/plugins/toolbar/ToolbarPlugin"
 
 export function Plugins() {
   const [_floatingAnchorElem, setFloatingAnchorElem] =
@@ -16,21 +22,28 @@ export function Plugins() {
 
   return (
     <div className="relative">
-      {/* toolbar plugins */}
+      {/* Toolbar */}
+      <ToolbarPlugin />
+      
+      {/* Core Plugins */}
+      <HistoryPlugin />
+      <ListPlugin />
+      <LinkPlugin />
+      <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+      
+      {/* Editor */}
       <div className="relative">
         <RichTextPlugin
           contentEditable={
-            <div className="">
+            <div className="min-h-[400px]">
               <div className="" ref={onRef}>
-                <ContentEditable placeholder={"Start typing ..."} />
+                <ContentEditable placeholder={"Start typing your article..."} />
               </div>
             </div>
           }
           ErrorBoundary={LexicalErrorBoundary}
         />
-        {/* editor plugins */}
       </div>
-      {/* actions plugins */}
     </div>
   )
 }
