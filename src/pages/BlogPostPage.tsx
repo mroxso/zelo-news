@@ -7,6 +7,7 @@ import { useReactions, useReact } from '@/hooks/useReactions';
 import { MarkdownContent } from '@/components/MarkdownContent';
 import { CommentsSection } from '@/components/comments/CommentsSection';
 import { ZapButton } from '@/components/ZapButton';
+import { BookmarkButton } from '@/components/BookmarkButton';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -202,6 +203,13 @@ export default function BlogPostPage() {
           <ZapButton
             target={post}
             showCount={true}
+          />
+
+          <BookmarkButton
+            articleCoordinate={`${post.kind}:${post.pubkey}:${identifier}`}
+            variant="outline"
+            size="default"
+            showText={true}
           />
         </div>
 
