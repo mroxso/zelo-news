@@ -189,13 +189,12 @@ export default function BlogPostPage() {
         <div className="flex flex-wrap items-center gap-4 mb-12">
           <Button
             variant={hasReacted ? "default" : "outline"}
-            size="lg"
             onClick={handleReact}
             disabled={!user || hasReacted}
             className="gap-2"
           >
-            <Heart className={`h-5 w-5 ${hasReacted ? 'fill-current' : ''}`} />
-            <span className="font-semibold">
+            <Heart className={`h-4 w-4 ${hasReacted ? 'fill-current' : ''}`} />
+            <span className="text-xs">
               {reactions?.likeCount || 0}
             </span>
           </Button>
