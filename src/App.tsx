@@ -33,7 +33,6 @@ const queryClient = new QueryClient({
 const defaultConfig: AppConfig = {
   theme: "light",
   relayUrl: "wss://relay.nostr.band",
-  // blogOwnerPubkey is deprecated - all users can now create posts
 };
 
 const presetRelays = [
