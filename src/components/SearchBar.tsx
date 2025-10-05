@@ -65,7 +65,7 @@ export function SearchBar({ className }: { className?: string }) {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search users, articles..."
+          placeholder="Search users, articles, #tags..."
           value={searchTerm}
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}

@@ -72,10 +72,14 @@ export default function SearchResultsPage() {
         {searchTerm && (
           <div>
             <h1 className="text-3xl font-bold">
-              Search Results for "{searchTerm}"
+              {searchTerm.startsWith('#') ? (
+                <>Articles tagged with "{searchTerm}"</>
+              ) : (
+                <>Search Results for "{searchTerm}"</>
+              )}
             </h1>
             <p className="text-muted-foreground mt-2">
-              Found {results?.length || 0} results
+              Found {results?.length || 0} {searchTerm.startsWith('#') ? 'articles' : 'results'}
             </p>
           </div>
         )}

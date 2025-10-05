@@ -20,7 +20,27 @@ export function useSearch(searchTerm: string, enabled = true) {
         return [];
       }
 
-      // Query both profiles (kind 0) and articles (kind 30023) in one request
+      // Check if the search term is a hashtag
+      const isHashtagSearch = term.startsWith('#');
+      const tagValue = isHashtagSearch ? term.slice(1) : term;
+
+      // If hashtag search, query specifically for articles with that tag
+      if (isHashtagSearch && tagValue) {
+        const events = await nostr.query(
+          [
+            {
+              kinds: [30023],
+              '#t': [tagValue],
+              limit: 100,
+            },
+          ],
+          { signal }
+        );
+
+        return events.map((event) => ({ type: 'article' as const, event }));
+      }
+
+      // Regular search: Query both profiles (kind 0) and articles (kind 30023) in one request
       const events = await nostr.query(
         [
           {
