@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useAuthorBlogPosts } from '@/hooks/useAuthorBlogPosts';
@@ -7,9 +7,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Calendar, Link2, Mail, Copy, Check } from 'lucide-react';
+import { Link2, Mail, Copy, Check } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import { RelaySelector } from '@/components/RelaySelector';
+import { ArticlePreview } from '@/components/ArticlePreview';
 import { useToast } from '@/hooks/useToast';
 import NotFound from '@/pages/NotFound';
 import { useState } from 'react';
@@ -234,74 +235,9 @@ export default function ProfilePage() {
             </div>
           ) : posts && posts.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {posts.map((post) => {
-                const title = post.tags.find(([name]) => name === 'title')?.[1] || 'Untitled';
-                const summary = post.tags.find(([name]) => name === 'summary')?.[1];
-                const image = post.tags.find(([name]) => name === 'image')?.[1];
-                const publishedAt = post.tags.find(([name]) => name === 'published_at')?.[1];
-                const tags = post.tags.filter(([name]) => name === 't').map(([, value]) => value);
-                const identifier = post.tags.find(([name]) => name === 'd')?.[1];
-
-                const naddr = nip19.naddrEncode({
-                  kind: post.kind,
-                  pubkey: post.pubkey,
-                  identifier: identifier || '',
-                });
-
-                const date = publishedAt 
-                  ? new Date(parseInt(publishedAt) * 1000)
-                  : new Date(post.created_at * 1000);
-
-                return (
-                  <Link key={post.id} to={`/${naddr}`}>
-                    <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer group overflow-hidden">
-                      {image && (
-                        <div className="relative h-48 overflow-hidden">
-                          <img 
-                            src={image} 
-                            alt={title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                      )}
-                      <CardHeader className="space-y-3">
-                        <h3 className="text-lg font-semibold line-clamp-2 group-hover:text-primary transition-colors">
-                          {title}
-                        </h3>
-                        {summary && (
-                          <p className="text-sm text-muted-foreground line-clamp-3">
-                            {summary}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <time dateTime={date.toISOString()}>
-                            {date.toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                            })}
-                          </time>
-                        </div>
-                        {tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {tags.slice(0, 3).map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {tags.length > 3 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +{tags.length - 3}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                      </CardHeader>
-                    </Card>
-                  </Link>
-                );
-              })}
+              {posts.map((post) => (
+                <ArticlePreview key={post.id} post={post} showAuthor={false} />
+              ))}
             </div>
           ) : (
             <Card className="border-dashed">
