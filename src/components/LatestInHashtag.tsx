@@ -20,20 +20,20 @@ export function LatestInHashtag({ hashtag, icon }: LatestInHashtagProps) {
   // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          {icon || <Hash className="h-6 w-6 text-primary" />}
+      <div className="space-y-6">
+        <div className="flex items-center gap-3 border-b pb-4">
+          {icon || <Hash className="h-8 w-8 text-primary" />}
           <div>
-            <Skeleton className="h-7 w-48 mb-1" />
-            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-8 w-48 mb-1" />
+            <Skeleton className="h-4 w-64" />
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map((i) => (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i}>
-              <Skeleton className="h-40 w-full" />
+              <Skeleton className="h-48 w-full" />
               <CardHeader>
-                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-full mt-2" />
               </CardHeader>
             </Card>
@@ -52,25 +52,23 @@ export function LatestInHashtag({ hashtag, icon }: LatestInHashtagProps) {
   const hasMore = posts.length > INITIAL_POSTS_COUNT;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Section Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {icon || <Hash className="h-6 w-6 text-primary" />}
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">
-              Latest in #{hashtag}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {posts.length} {posts.length === 1 ? 'article' : 'articles'}
-            </p>
-          </div>
+      <div className="flex items-center gap-3 border-b pb-4">
+        {icon || <Hash className="h-8 w-8 text-primary" />}
+        <div className="flex-1">
+          <h2 className="text-3xl font-bold tracking-tight">
+            Latest in #{hashtag}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {posts.length} {posts.length === 1 ? 'article' : 'articles'} in this category
+          </p>
         </div>
         {hasMore && (
           <Button
             onClick={() => navigate(`/search?q=${encodeURIComponent('#' + hashtag)}`)}
-            variant="ghost"
-            size="sm"
+            variant="outline"
+            size="default"
             className="gap-1"
           >
             View All
@@ -80,9 +78,9 @@ export function LatestInHashtag({ hashtag, icon }: LatestInHashtagProps) {
       </div>
 
       {/* Posts Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {visiblePosts.map((post) => (
-          <ArticlePreview key={post.id} post={post} variant="compact" />
+          <ArticlePreview key={post.id} post={post} />
         ))}
       </div>
 
