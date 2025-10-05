@@ -209,10 +209,10 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Blog Posts Section */}
+        {/* Articles Section */}
         <div className="mt-8 px-4 md:px-0 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl md:text-2xl font-bold">Blog Posts</h2>
+            <h2 className="text-xl md:text-2xl font-bold">Articles</h2>
             {posts && posts.length > 0 && (
               <Badge variant="secondary" className="text-sm">
                 {posts.length} {posts.length === 1 ? 'post' : 'posts'}
