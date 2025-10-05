@@ -38,7 +38,7 @@ export default function SearchResultsPage() {
           {/* Loading skeletons */}
           <div className="space-y-6">
             <Skeleton className="h-8 w-48" />
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3].map((i) => (
                 <Card key={i}>
                   <CardHeader>
@@ -102,7 +102,7 @@ export default function SearchResultsPage() {
               <User className="h-6 w-6" />
               Profiles ({profiles.length})
             </h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {profiles.map((result) => {
                 let metadata: NostrMetadata = {};
                 try {
@@ -160,7 +160,7 @@ export default function SearchResultsPage() {
               <FileText className="h-6 w-6" />
               Articles ({articles.length})
             </h2>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {articles.map((result) => {
                 const title = result.event.tags.find(([name]) => name === 'title')?.[1] || 'Untitled';
                 const summary = result.event.tags.find(([name]) => name === 'summary')?.[1];
