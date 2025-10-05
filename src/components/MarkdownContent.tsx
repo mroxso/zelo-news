@@ -15,7 +15,7 @@ interface MarkdownContentProps {
  */
 export function MarkdownContent({ content, className }: MarkdownContentProps) {
   return (
-    <div className={cn('prose prose-slate dark:prose-invert max-w-none', className)}>
+    <div className={cn('prose prose-slate dark:prose-invert max-w-none break-words overflow-wrap-anywhere', className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
@@ -32,7 +32,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                 return (
                   <Link
                     to={`/${nostrId}`}
-                    className="text-blue-500 hover:underline"
+                    className="text-blue-500 hover:underline break-all"
                   >
                     {children}
                   </Link>
@@ -49,7 +49,7 @@ export function MarkdownContent({ content, className }: MarkdownContentProps) {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-500 hover:underline"
+                className="text-blue-500 hover:underline break-all"
                 {...props}
               >
                 {children}
