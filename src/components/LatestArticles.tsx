@@ -1,15 +1,29 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
 import type { NostrEvent } from '@nostrify/nostrify';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Newspaper } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Newspaper, ChevronDown } from 'lucide-react';
 
 interface LatestArticlesProps {
   posts: NostrEvent[];
 }
 
+const INITIAL_POSTS_COUNT = 6;
+const LOAD_MORE_COUNT = 6;
+
 export function LatestArticles({ posts }: LatestArticlesProps) {
+  const [visibleCount, setVisibleCount] = useState(INITIAL_POSTS_COUNT);
+  
+  const visiblePosts = posts.slice(0, visibleCount);
+  const hasMore = visibleCount < posts.length;
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, posts.length));
+  };
+
   return (
     <div className="space-y-6">
       {/* Section Header */}
@@ -25,7 +39,7 @@ export function LatestArticles({ posts }: LatestArticlesProps) {
 
       {/* Posts Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {posts.map((post) => {
+        {visiblePosts.map((post) => {
           const title = post.tags.find(([name]) => name === 'title')?.[1] || 'Untitled';
           const summary = post.tags.find(([name]) => name === 'summary')?.[1];
           const image = post.tags.find(([name]) => name === 'image')?.[1];
@@ -94,6 +108,24 @@ export function LatestArticles({ posts }: LatestArticlesProps) {
           );
         })}
       </div>
+
+      {/* Load More Button */}
+      {hasMore && (
+        <div className="flex justify-center pt-4">
+          <Button
+            onClick={handleLoadMore}
+            variant="outline"
+            size="lg"
+            className="gap-2"
+          >
+            <ChevronDown className="h-4 w-4" />
+            Load More Articles
+            <span className="text-muted-foreground ml-1">
+              ({posts.length - visibleCount} remaining)
+            </span>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
