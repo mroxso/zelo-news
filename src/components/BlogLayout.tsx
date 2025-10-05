@@ -16,7 +16,7 @@ export function BlogLayout({ children }: BlogLayoutProps) {
         <div className="container px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
             <p>Powered by Nostr</p>
-            <p>
+            {/* <p>
               Vibed with{' '}
               <a
                 href="https://soapbox.pub/mkstack"
@@ -26,7 +26,7 @@ export function BlogLayout({ children }: BlogLayoutProps) {
               >
                 MKStack
               </a>
-            </p>
+            </p> */}
           </div>
         </div>
       </footer>

@@ -116,10 +116,6 @@ The AI assistant's behavior and knowledge is defined by the AGENTS.md file, whic
 1. Edit AGENTS.md directly
 2. The changes take effect in the next session
 
-## "Vibed with MKStack"
-
-When building the site for the first time, include "Vibed with MKStack" somewhere in the UI, linked to this URL: https://soapbox.pub/mkstack
-
 ## Nostr Protocol Integration
 
 This project comes with custom hooks for querying and publishing events on the Nostr network.
