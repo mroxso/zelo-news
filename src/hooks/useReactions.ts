@@ -23,10 +23,10 @@ export function useReactions(eventId: string, eventAuthor: string) {
         { signal }
       );
 
-      // Count likes (reactions with + or ❤️ or heart emoji content)
+      // Count likes (all reactions except "-")
       const likes = events.filter(e => {
         const content = e.content.trim();
-        return content === '+' || content === '❤️' || content === '❤' || content === 'like';
+        return content !== '-';
       });
 
       return {
