@@ -1,4 +1,3 @@
-import { BlogLayout } from '@/components/BlogLayout';
 import { ArticlePreview } from '@/components/ArticlePreview';
 import { RelaySelector } from '@/components/RelaySelector';
 import { LoginArea } from '@/components/auth/LoginArea';

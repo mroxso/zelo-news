@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Button } from '@/components/ui/button';
-import { PenSquare, Menu } from 'lucide-react';
+import { PenSquare, Menu, Bookmark } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useState } from 'react';
@@ -25,6 +25,12 @@ export function BlogHeader() {
           {/* Desktop Navigation */}
           {user && (
             <nav className="hidden sm:flex items-center gap-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/bookmarks">
+                  <Bookmark className="h-4 w-4 mr-2" />
+                  Bookmarks
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" asChild>
                 <Link to="/create">
                   <PenSquare className="h-4 w-4 mr-2" />
@@ -63,10 +69,16 @@ export function BlogHeader() {
                   <LoginArea className="w-full" />
                 </div>
 
-                {/* New Post Button for logged in users */}
+                {/* Navigation for logged in users */}
                 {user && (
                   <>
-                    <div className="border-t pt-4">
+                    <div className="border-t pt-4 space-y-2">
+                      <Button variant="outline" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
+                        <Link to="/bookmarks">
+                          <Bookmark className="h-4 w-4 mr-2" />
+                          Bookmarks
+                        </Link>
+                      </Button>
                       <Button variant="default" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
                         <Link to="/create">
                           <PenSquare className="h-4 w-4 mr-2" />
