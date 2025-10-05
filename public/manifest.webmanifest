@@ -1,7 +1,7 @@
 {
-  "name": "Zelo News",
-  "short_name": "Zelo",
-  "description": "A Nostr-powered news platform",
+  "name": "zelo.news",
+  "short_name": "zelo",
+  "description": "Your Source for Decentralized News",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
