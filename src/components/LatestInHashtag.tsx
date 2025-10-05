@@ -1,37 +1,40 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, Newspaper, ChevronDown } from 'lucide-react';
-import { useBlogPosts } from '@/hooks/useBlogPosts';
+import { Calendar, Hash, ChevronRight } from 'lucide-react';
+import { useBlogPostsByHashtag } from '@/hooks/useBlogPostsByHashtag';
+
+interface LatestInHashtagProps {
+  hashtag: string;
+  icon?: React.ReactNode;
+}
 
 const INITIAL_POSTS_COUNT = 3;
-const LOAD_MORE_COUNT = 6;
 
-export function LatestArticles() {
-  const [visibleCount, setVisibleCount] = useState(INITIAL_POSTS_COUNT);
-  const { data: posts, isLoading } = useBlogPosts();
-  
+export function LatestInHashtag({ hashtag, icon }: LatestInHashtagProps) {
+  const navigate = useNavigate();
+  const { data: posts, isLoading } = useBlogPostsByHashtag(hashtag);
+
   // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-3 border-b pb-4">
-          <Newspaper className="h-8 w-8 text-primary" />
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          {icon || <Hash className="h-6 w-6 text-primary" />}
           <div>
-            <Skeleton className="h-8 w-48 mb-1" />
-            <Skeleton className="h-4 w-64" />
+            <Skeleton className="h-7 w-48 mb-1" />
+            <Skeleton className="h-4 w-24" />
           </div>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
             <Card key={i}>
-              <Skeleton className="h-48 w-full" />
+              <Skeleton className="h-40 w-full" />
               <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-4 w-full mt-2" />
               </CardHeader>
             </Card>
@@ -46,28 +49,39 @@ export function LatestArticles() {
     return null;
   }
   
-  const visiblePosts = posts.slice(0, visibleCount);
-  const hasMore = visibleCount < posts.length;
-
-  const handleLoadMore = () => {
-    setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, posts.length));
-  };
+  const visiblePosts = posts.slice(0, INITIAL_POSTS_COUNT);
+  const hasMore = posts.length > INITIAL_POSTS_COUNT;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Section Header */}
-      <div className="flex items-center gap-3 border-b pb-4">
-        <Newspaper className="h-8 w-8 text-primary" />
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Latest Articles</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Discover the most recent stories from the community
-          </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {icon || <Hash className="h-6 w-6 text-primary" />}
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">
+              Latest in #{hashtag}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              {posts.length} {posts.length === 1 ? 'article' : 'articles'}
+            </p>
+          </div>
         </div>
+        {hasMore && (
+          <Button
+            onClick={() => navigate(`/search?q=${encodeURIComponent('#' + hashtag)}`)}
+            variant="ghost"
+            size="sm"
+            className="gap-1"
+          >
+            View All
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Posts Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {visiblePosts.map((post) => {
           const title = post.tags.find(([name]) => name === 'title')?.[1] || 'Untitled';
           const summary = post.tags.find(([name]) => name === 'summary')?.[1];
@@ -102,23 +116,23 @@ export function LatestArticles() {
                   </div>
                 )}
                 <CardHeader className="flex-1">
-                  <h3 className="text-xl sm:text-2xl font-bold line-clamp-2 mb-2">
+                  <h3 className="text-lg font-bold line-clamp-2 mb-2">
                     {title}
                   </h3>
                   {summary && (
-                    <p className="text-muted-foreground text-sm line-clamp-3">
+                    <p className="text-muted-foreground text-sm line-clamp-2">
                       {summary}
                     </p>
                   )}
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                     <Calendar className="h-3 w-3" />
                     <time dateTime={date.toISOString()}>
                       {date.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
+                        month: 'short',
                         day: 'numeric',
+                        year: 'numeric',
                       })}
                     </time>
                   </div>
@@ -138,23 +152,6 @@ export function LatestArticles() {
         })}
       </div>
 
-      {/* Load More Button */}
-      {hasMore && (
-        <div className="flex justify-center pt-4">
-          <Button
-            onClick={handleLoadMore}
-            variant="outline"
-            size="lg"
-            className="gap-2"
-          >
-            <ChevronDown className="h-4 w-4" />
-            Load More Articles
-            <span className="text-muted-foreground ml-1">
-              ({posts.length - visibleCount} remaining)
-            </span>
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
