@@ -1,0 +1,234 @@
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { nip19 } from 'nostr-tools';
+import { useSearch } from '@/hooks/useSearch';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User, FileText, ArrowLeft, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { SearchBar } from '@/components/SearchBar';
+import type { NostrMetadata } from '@nostrify/nostrify';
+
+export default function SearchResultsPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const searchTerm = searchParams.get('q') || '';
+  
+  const { data: results, isLoading } = useSearch(searchTerm, true);
+
+  const profiles = results?.filter(r => r.type === 'profile') || [];
+  const articles = results?.filter(r => r.type === 'article') || [];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen">
+        <div className="container max-w-6xl py-8 space-y-8">
+          {/* Header */}
+          <div className="space-y-4">
+            <Button variant="ghost" onClick={() => navigate('/')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Button>
+            <div className="max-w-2xl mx-auto">
+              <SearchBar />
+            </div>
+          </div>
+
+          {/* Loading skeletons */}
+          <div className="space-y-6">
+            <Skeleton className="h-8 w-48" />
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-full mt-2" />
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen">
+      <div className="container max-w-6xl py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* Header with back button and search */}
+        <div className="space-y-4">
+          <Button variant="ghost" onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
+          <div className="max-w-2xl mx-auto">
+            <SearchBar />
+          </div>
+        </div>
+
+        {/* Search term heading */}
+        {searchTerm && (
+          <div>
+            <h1 className="text-3xl font-bold">
+              Search Results for "{searchTerm}"
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Found {results?.length || 0} results
+            </p>
+          </div>
+        )}
+
+        {/* No results */}
+        {!isLoading && (!results || results.length === 0) && (
+          <Card className="border-dashed">
+            <CardContent className="py-12 px-8 text-center">
+              <p className="text-muted-foreground">
+                No results found for "{searchTerm}". Try a different search term.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Profiles section */}
+        {profiles.length > 0 && (
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <User className="h-6 w-6" />
+              Profiles ({profiles.length})
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {profiles.map((result) => {
+                let metadata: NostrMetadata = {};
+                try {
+                  metadata = JSON.parse(result.event.content);
+                } catch {
+                  // Invalid JSON
+                }
+
+                const displayName = metadata.display_name || metadata.name || 'Anonymous';
+                const nip05 = metadata.nip05;
+                const picture = metadata.picture;
+                const about = metadata.about;
+                const npub = nip19.npubEncode(result.event.pubkey);
+
+                return (
+                  <Link key={result.event.id} to={`/${npub}`}>
+                    <Card className="hover:shadow-lg transition-shadow h-full">
+                      <CardContent className="pt-6">
+                        <div className="flex flex-col items-center text-center space-y-3">
+                          <Avatar className="h-20 w-20">
+                            <AvatarImage src={picture} alt={displayName} />
+                            <AvatarFallback>
+                              <User className="h-10 w-10" />
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-1 w-full">
+                            <h3 className="font-semibold text-lg truncate">{displayName}</h3>
+                            {nip05 && (
+                              <p className="text-xs text-muted-foreground truncate">{nip05}</p>
+                            )}
+                          </div>
+                          {about && (
+                            <p className="text-sm text-muted-foreground line-clamp-3 w-full">
+                              {about}
+                            </p>
+                          )}
+                          <Badge variant="outline" className="text-xs">
+                            <User className="h-3 w-3 mr-1" />
+                            Profile
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Articles section */}
+        {articles.length > 0 && (
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <FileText className="h-6 w-6" />
+              Articles ({articles.length})
+            </h2>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {articles.map((result) => {
+                const title = result.event.tags.find(([name]) => name === 'title')?.[1] || 'Untitled';
+                const summary = result.event.tags.find(([name]) => name === 'summary')?.[1];
+                const image = result.event.tags.find(([name]) => name === 'image')?.[1];
+                const publishedAt = result.event.tags.find(([name]) => name === 'published_at')?.[1];
+                const identifier = result.event.tags.find(([name]) => name === 'd')?.[1] || '';
+                const hashtags = result.event.tags
+                  .filter(([name]) => name === 't')
+                  .map(([, value]) => value)
+                  .slice(0, 3);
+
+                const date = publishedAt
+                  ? new Date(parseInt(publishedAt) * 1000)
+                  : new Date(result.event.created_at * 1000);
+
+                const naddr = nip19.naddrEncode({
+                  kind: 30023,
+                  pubkey: result.event.pubkey,
+                  identifier,
+                });
+
+                return (
+                  <Link key={result.event.id} to={`/${naddr}`}>
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+                      {image && (
+                        <div className="aspect-video overflow-hidden bg-muted">
+                          <img
+                            src={image}
+                            alt={title}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      )}
+                      <CardHeader className="flex-1">
+                        <h3 className="text-xl font-bold line-clamp-2 mb-2">
+                          {title}
+                        </h3>
+                        {summary && (
+                          <p className="text-muted-foreground text-sm line-clamp-3">
+                            {summary}
+                          </p>
+                        )}
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                          <Calendar className="h-3 w-3" />
+                          <time dateTime={date.toISOString()}>
+                            {date.toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </time>
+                        </div>
+                        {hashtags.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {hashtags.map((tag) => (
+                              <Badge key={tag} variant="secondary" className="text-xs">
+                                #{tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </div>
+    </div>
+  );
+}

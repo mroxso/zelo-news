@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from 'lucide-react';
 import { RelaySelector } from '@/components/RelaySelector';
+import { SearchBar } from '@/components/SearchBar';
 
 export default function BlogHomePage() {
   const { data: posts, isLoading } = useBlogPosts();
@@ -13,15 +14,14 @@ export default function BlogHomePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <div className="container max-w-6xl py-8 space-y-8">
-          {/* Header skeleton */}
-          <div className="space-y-4">
-            <Skeleton className="h-12 w-64" />
-            <Skeleton className="h-6 w-96" />
+        <div className="container max-w-6xl py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+          {/* Search bar */}
+          <div className="max-w-2xl mx-auto">
+            <SearchBar />
           </div>
 
           {/* Posts skeleton */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <Card key={i}>
                 <Skeleton className="h-48 w-full" />
@@ -40,7 +40,12 @@ export default function BlogHomePage() {
   if (!posts || posts.length === 0) {
     return (
       <div className="min-h-screen">
-        <div className="container max-w-6xl py-8">
+        <div className="container max-w-6xl py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+          {/* Search bar */}
+          <div className="max-w-2xl mx-auto">
+            <SearchBar />
+          </div>
+
           {/* Empty state */}
           <Card className="border-dashed">
             <CardContent className="py-12 px-8 text-center">
@@ -59,7 +64,12 @@ export default function BlogHomePage() {
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-6xl py-8 px-4 sm:px-6 lg:px-8">
+      <div className="container max-w-6xl py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+        {/* Search bar */}
+        <div className="max-w-2xl mx-auto">
+          <SearchBar />
+        </div>
+
         {/* Posts grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => {
