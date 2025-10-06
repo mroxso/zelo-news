@@ -135,7 +135,7 @@ export function SearchBar({ className }: { className?: string }) {
           className="pl-9 pr-4"
         />
         {(isLoading || isResolving) && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+          <Loader2 className="absolute right-3 top-2 text-muted-foreground animate-spin" />
         )}
       </div>
 
