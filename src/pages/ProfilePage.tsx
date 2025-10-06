@@ -3,16 +3,18 @@ import { nip19 } from 'nostr-tools';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useAuthorBlogPosts } from '@/hooks/useAuthorBlogPosts';
 import { useUserBookmarkedArticles } from '@/hooks/useUserBookmarkedArticles';
+import { useUserHighlights } from '@/hooks/useUserHighlights';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link2, Mail, Copy, Check, Bookmark } from 'lucide-react';
+import { Link2, Mail, Copy, Check, Bookmark, Highlighter } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import { RelaySelector } from '@/components/RelaySelector';
 import { ArticlePreview } from '@/components/ArticlePreview';
+import { HighlightCard } from '@/components/highlights/HighlightCard';
 import { useToast } from '@/hooks/useToast';
 import NotFound from '@/pages/NotFound';
 import { useState } from 'react';
@@ -47,6 +49,7 @@ export default function ProfilePage() {
   const author = useAuthor(pubkey);
   const { data: posts, isLoading: postsLoading } = useAuthorBlogPosts(pubkey);
   const { data: bookmarkedArticles, isLoading: bookmarksLoading } = useUserBookmarkedArticles(pubkey);
+  const { data: highlights, isLoading: highlightsLoading } = useUserHighlights(pubkey);
   
   const metadata = author.data?.metadata;
   const displayName = metadata?.display_name || metadata?.name || genUserName(pubkey);
@@ -216,21 +219,30 @@ export default function ProfilePage() {
         {/* Content Tabs */}
         <div className="mt-8 px-4 md:px-0">
           <Tabs defaultValue="articles" className="w-full">
-            <TabsList className="w-full md:w-auto">
-              <TabsTrigger value="articles" className="flex-1 md:flex-initial">
-                Published Articles
+            <TabsList className="w-full md:w-auto grid grid-cols-3">
+              <TabsTrigger value="articles">
+                Published
                 {posts && posts.length > 0 && (
                   <Badge variant="secondary" className="ml-2 text-xs">
                     {posts.length}
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="bookmarks" className="flex-1 md:flex-initial">
-                <Bookmark className="h-4 w-4 mr-2" />
-                Bookmarks
+              <TabsTrigger value="bookmarks">
+                <Bookmark className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Bookmarks</span>
                 {bookmarkedArticles && bookmarkedArticles.length > 0 && (
                   <Badge variant="secondary" className="ml-2 text-xs">
                     {bookmarkedArticles.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="highlights">
+                <Highlighter className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Highlights</span>
+                {highlights && highlights.length > 0 && (
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    {highlights.length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -299,6 +311,51 @@ export default function ProfilePage() {
                         <h3 className="text-xl font-semibold">No Bookmarks</h3>
                         <p className="text-muted-foreground">
                           This user hasn't bookmarked any articles yet.
+                        </p>
+                      </div>
+                      <RelaySelector className="w-full" />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Highlights Tab */}
+            <TabsContent value="highlights" className="space-y-6">
+              {highlightsLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i}>
+                      <CardHeader>
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <div className="space-y-2 flex-1">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-3 w-24" />
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <Skeleton className="h-20 w-full" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : highlights && highlights.length > 0 ? (
+                <div className="space-y-4">
+                  {highlights.map((highlight) => (
+                    <HighlightCard key={highlight.id} highlight={highlight} />
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-dashed">
+                  <CardContent className="py-12 px-8 text-center">
+                    <div className="max-w-sm mx-auto space-y-6">
+                      <Highlighter className="h-16 w-16 mx-auto text-muted-foreground" />
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-semibold">No Highlights</h3>
+                        <p className="text-muted-foreground">
+                          This user hasn't created any highlights yet.
                         </p>
                       </div>
                       <RelaySelector className="w-full" />

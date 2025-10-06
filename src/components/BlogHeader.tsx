@@ -22,45 +22,16 @@ export function BlogHeader() {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          {user && (
-            <nav className="hidden sm:flex items-center gap-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/following">
-                  <Users className="h-4 w-4 mr-2" />
-                  Following
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/bookmarks">
-                  <Bookmark className="h-4 w-4 mr-2" />
-                  Bookmarks
-                </Link>
-              </Button>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/highlights">
-                  <Highlighter className="h-4 w-4 mr-2" />
-                  Highlights
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/create">
-                  <PenSquare className="h-4 w-4 mr-2" />
-                  New Post
-                </Link>
-              </Button>
-            </nav>
-          )}
         </div>
 
         {/* Desktop Actions */}
-        <div className="hidden sm:flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2">
           <ThemeToggle />
           <LoginArea className="max-w-60" />
         </div>
 
-        {/* Mobile Menu */}
-        <div className="sm:hidden">
+        {/* Burger Menu (shown on tablets and mobile) */}
+        <div className="lg:hidden">
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -69,12 +40,6 @@ export function BlogHeader() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px]">
               <div className="flex flex-col gap-6 mt-8">
-                {/* Theme Toggle in Menu */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Theme</span>
-                  <ThemeToggle />
-                </div>
-
                 {/* Login Area in Menu */}
                 <div className="flex flex-col gap-2">
                   <span className="text-sm font-medium">Account</span>
@@ -83,35 +48,39 @@ export function BlogHeader() {
 
                 {/* Navigation for logged in users */}
                 {user && (
-                  <>
-                    <div className="border-t pt-4 space-y-2">
-                      <Button variant="outline" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
-                        <Link to="/following">
-                          <Users className="h-4 w-4 mr-2" />
-                          Following
-                        </Link>
-                      </Button>
-                      <Button variant="outline" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
-                        <Link to="/bookmarks">
-                          <Bookmark className="h-4 w-4 mr-2" />
-                          Bookmarks
-                        </Link>
-                      </Button>
-                      <Button variant="outline" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
-                        <Link to="/highlights">
-                          <Highlighter className="h-4 w-4 mr-2" />
-                          Highlights
-                        </Link>
-                      </Button>
-                      <Button variant="default" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
-                        <Link to="/create">
-                          <PenSquare className="h-4 w-4 mr-2" />
-                          New Post
-                        </Link>
-                      </Button>
-                    </div>
-                  </>
+                  <div className="border-t pt-4 space-y-2">
+                    <Button variant="outline" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
+                      <Link to="/following">
+                        <Users className="h-4 w-4 mr-2" />
+                        Following
+                      </Link>
+                    </Button>
+                    <Button variant="outline" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
+                      <Link to="/bookmarks">
+                        <Bookmark className="h-4 w-4 mr-2" />
+                        Bookmarks
+                      </Link>
+                    </Button>
+                    <Button variant="outline" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
+                      <Link to="/highlights">
+                        <Highlighter className="h-4 w-4 mr-2" />
+                        Highlights
+                      </Link>
+                    </Button>
+                    <Button variant="default" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
+                      <Link to="/create">
+                        <PenSquare className="h-4 w-4 mr-2" />
+                        New Post
+                      </Link>
+                    </Button>
+                  </div>
                 )}
+
+                {/* Theme Toggle in Menu */}
+                <div className="border-t pt-4 flex items-center justify-between">
+                  <span className="text-sm font-medium">Theme</span>
+                  <ThemeToggle />
+                </div>
               </div>
             </SheetContent>
           </Sheet>

@@ -15,7 +15,7 @@ interface MarkdownContentProps {
  */
 export function MarkdownContent({ content, className }: MarkdownContentProps) {
   return (
-    <div className={cn('prose prose-slate dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-h4:text-xl prose-h5:text-lg prose-h6:text-base max-w-none break-words overflow-wrap-anywhere', className)}>
+    <div className={cn('prose prose-slate dark:prose-invert prose-headings:font-bold prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-h4:text-xl prose-h5:text-lg prose-h6:text-base max-w-none break-words overflow-wrap-anywhere select-text', className)}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
