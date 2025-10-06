@@ -1,0 +1,16 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://zelo.news/sitemap.xml
+
+# Disallow search results
+Disallow: /search
+
+# Disallow user-specific pages
+Disallow: /bookmarks
+Disallow: /following
+
+# Crawl delay (be nice to servers)
+Crawl-delay: 1

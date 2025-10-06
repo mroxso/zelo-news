@@ -1,21 +1,45 @@
 {
-  "name": "zelo.news",
-  "short_name": "zelo",
-  "description": "Your Source for Decentralized News",
+  "name": "zelo.news - Decentralized News on Nostr",
+  "short_name": "zelo.news",
+  "description": "Discover decentralized news and long-form articles on Nostr. Read, write, and share censorship-resistant content powered by the Nostr protocol.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#000000",
+  "categories": ["news", "social", "productivity"],
+  "lang": "en-US",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Create Article",
+      "short_name": "Create",
+      "description": "Write a new article",
+      "url": "/create",
+      "icons": []
+    },
+    {
+      "name": "Bookmarks",
+      "short_name": "Bookmarks",
+      "description": "View saved articles",
+      "url": "/bookmarks",
+      "icons": []
     }
   ]
 }

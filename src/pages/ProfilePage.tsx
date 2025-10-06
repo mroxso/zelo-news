@@ -3,8 +3,11 @@ import { nip19 } from 'nostr-tools';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useAuthorBlogPosts } from '@/hooks/useAuthorBlogPosts';
 import { useUserBookmarkedArticles } from '@/hooks/useUserBookmarkedArticles';
+import { usePageSEO } from '@/hooks/usePageSEO';
+import { StructuredData } from '@/components/StructuredData';
 import { ProfileView } from '@/components/ProfileView';
 import { ProfileSkeleton } from '@/components/ProfileSkeleton';
+import { genUserName } from '@/lib/genUserName';
 import NotFound from '@/pages/NotFound';
 
 export default function ProfilePage() {
@@ -36,6 +39,19 @@ export default function ProfilePage() {
   const { data: posts, isLoading: postsLoading } = useAuthorBlogPosts(pubkey);
   const { data: bookmarkedArticles, isLoading: bookmarksLoading } = useUserBookmarkedArticles(pubkey);
 
+  // Set SEO metadata for profile
+  const metadata = author.data?.metadata;
+  const displayName = metadata?.display_name || metadata?.name || genUserName(pubkey);
+  const about = metadata?.about;
+  const picture = metadata?.picture;
+
+  usePageSEO({
+    title: `${displayName} on zelo.news`,
+    description: about || `View ${displayName}'s profile and articles on zelo.news - a decentralized news platform powered by Nostr.`,
+    ogImage: picture,
+    ogType: 'profile',
+  });
+
   // If not a valid profile identifier, show 404
   if (!isValidProfile || !pubkey) {
     return <NotFound />;
@@ -46,8 +62,27 @@ export default function ProfilePage() {
     return <ProfileSkeleton />;
   }
 
+  const currentUrl = window.location.href;
+  const nip05 = metadata?.nip05;
+  const website = metadata?.website;
+
   return (
-    <ProfileView
+    <>
+      <StructuredData 
+        type="profile"
+        data={{
+          name: displayName,
+          description: about,
+          image: picture,
+          url: currentUrl,
+          sameAs: [
+            ...(nip05 ? [`nostr:${nip05}`] : []),
+            ...(website ? [website] : []),
+          ].filter(Boolean),
+        }}
+      />
+      
+      <ProfileView
       pubkey={pubkey}
       metadata={author.data?.metadata}
       posts={posts}
@@ -55,5 +90,6 @@ export default function ProfilePage() {
       postsLoading={postsLoading}
       bookmarksLoading={bookmarksLoading}
     />
+    </>
   );
 }

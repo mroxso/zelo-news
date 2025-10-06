@@ -4,6 +4,7 @@ import { LoginArea } from '@/components/auth/LoginArea';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useBookmarkedArticles } from '@/hooks/useBookmarkedArticles';
 import { useBookmarks } from '@/hooks/useBookmarks';
+import { usePageSEO } from '@/hooks/usePageSEO';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Bookmark } from 'lucide-react';
@@ -12,6 +13,12 @@ export function BookmarksPage() {
   const { user } = useCurrentUser();
   const { data: bookmarks = [], isLoading: isLoadingBookmarks } = useBookmarks();
   const { data: articles = [], isLoading: isLoadingArticles } = useBookmarkedArticles();
+
+  usePageSEO({
+    title: 'Bookmarks',
+    description: 'Your saved articles - Access all the articles you have bookmarked for later reading.',
+    robots: 'noindex, nofollow',
+  });
 
   const isLoading = isLoadingBookmarks || isLoadingArticles;
 
