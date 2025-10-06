@@ -21,6 +21,9 @@ import { calculateReadingTime } from '@/lib/calculateReadingTime';
 import { useToast } from '@/hooks/useToast';
 import { useState } from 'react';
 import NotFound from '@/pages/NotFound';
+import { HighlightButton } from '@/components/highlights/HighlightButton';
+import { QuoteHighlightDialog } from '@/components/highlights/QuoteHighlightDialog';
+import { usePublishHighlight } from '@/hooks/usePublishHighlight';
 
 export default function BlogPostPage() {
   const { nip19: naddr } = useParams<{ nip19: string }>();
@@ -28,6 +31,9 @@ export default function BlogPostPage() {
   const { user } = useCurrentUser();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
+  const [showQuoteDialog, setShowQuoteDialog] = useState(false);
+  const [selectedTextForQuote, setSelectedTextForQuote] = useState('');
+  const { mutate: publishHighlight, isPending: isPublishingHighlight } = usePublishHighlight();
 
   // Decode naddr
   let pubkey = '';
@@ -124,6 +130,62 @@ export default function BlogPostPage() {
     }
   };
 
+  const handleHighlight = (text: string) => {
+    if (!post) return;
+
+    publishHighlight({
+      content: text,
+      article: post,
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Highlight saved!",
+          description: "Your highlight has been published",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Failed to save highlight",
+          description: error.message || "Could not publish highlight",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
+  const handleQuoteHighlight = (text: string) => {
+    setSelectedTextForQuote(text);
+    setShowQuoteDialog(true);
+  };
+
+  const handleQuoteSubmit = (comment: string) => {
+    if (!post) return;
+
+    publishHighlight({
+      content: selectedTextForQuote,
+      article: post,
+      comment: comment,
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Quote highlight shared!",
+          description: "Your highlight with commentary has been published",
+        });
+        setShowQuoteDialog(false);
+        setSelectedTextForQuote('');
+        // Clear selection
+        window.getSelection()?.removeAllRanges();
+      },
+      onError: (error) => {
+        toast({
+          title: "Failed to share highlight",
+          description: error.message || "Could not publish highlight",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen">
       {/* Sticky progress bar */}
@@ -214,9 +276,14 @@ export default function BlogPostPage() {
           </div>
         )}
 
-        {/* Post content */}
-        <div className="mb-12">
+        {/* Post content with highlighting */}
+        <div className="mb-12 relative">
           <MarkdownContent content={post.content} />
+          <HighlightButton
+            onHighlight={handleHighlight}
+            onQuoteHighlight={handleQuoteHighlight}
+            isPending={isPublishingHighlight}
+          />
         </div>
 
         <Separator className="my-8" />
@@ -268,6 +335,15 @@ export default function BlogPostPage() {
           root={post}
         />
       </article>
+
+      {/* Quote Highlight Dialog */}
+      <QuoteHighlightDialog
+        open={showQuoteDialog}
+        onOpenChange={setShowQuoteDialog}
+        selectedText={selectedTextForQuote}
+        onSubmit={handleQuoteSubmit}
+        isPending={isPublishingHighlight}
+      />
     </div>
   );
 }

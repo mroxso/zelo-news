@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Button } from '@/components/ui/button';
-import { PenSquare, Menu, Bookmark, Users } from 'lucide-react';
+import { PenSquare, Menu, Bookmark, Users, Highlighter } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useState } from 'react';
@@ -35,6 +35,12 @@ export function BlogHeader() {
                 <Link to="/bookmarks">
                   <Bookmark className="h-4 w-4 mr-2" />
                   Bookmarks
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/highlights">
+                  <Highlighter className="h-4 w-4 mr-2" />
+                  Highlights
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
@@ -89,6 +95,12 @@ export function BlogHeader() {
                         <Link to="/bookmarks">
                           <Bookmark className="h-4 w-4 mr-2" />
                           Bookmarks
+                        </Link>
+                      </Button>
+                      <Button variant="outline" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
+                        <Link to="/highlights">
+                          <Highlighter className="h-4 w-4 mr-2" />
+                          Highlights
                         </Link>
                       </Button>
                       <Button variant="default" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
