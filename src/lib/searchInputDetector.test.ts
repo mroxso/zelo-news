@@ -3,9 +3,11 @@ import { detectSearchInputType } from './searchInputDetector';
 
 describe('detectSearchInputType', () => {
   it('detects npub identifiers', () => {
-    const npub = 'npub1xyz';
     // Since we don't have a valid npub for testing, we'll test the logic flow
     // A real npub would be detected properly in the actual implementation
+    // Invalid npubs fall through to search type
+    const result = detectSearchInputType('npub1invalidformat');
+    expect(result.type).toBe('search');
   });
 
   it('detects hashtags', () => {
