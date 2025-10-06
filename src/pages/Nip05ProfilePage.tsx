@@ -16,8 +16,9 @@ export default function Nip05ProfilePage() {
   // Decode the URL parameter (handles URL encoding)
   const decodedNip05 = nip05 ? decodeURIComponent(nip05) : '';
 
-  // Validate that it looks like a NIP-05 identifier (contains @)
-  const isValidFormat = decodedNip05.includes('@') && decodedNip05.split('@').length === 2;
+  // Validate that it looks like a NIP-05 identifier: non-empty local part, '@', valid domain
+  const nip05Regex = /^[^@]+@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;
+  const isValidFormat = nip05Regex.test(decodedNip05);
 
   // Resolve the NIP-05 identifier to a pubkey
   const { data: pubkey, isLoading: resolvingNip05, isError } = useQuery({
