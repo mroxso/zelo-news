@@ -2,12 +2,14 @@ import { useParams } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useAuthorBlogPosts } from '@/hooks/useAuthorBlogPosts';
+import { useUserBookmarkedArticles } from '@/hooks/useUserBookmarkedArticles';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Link2, Mail, Copy, Check } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Link2, Mail, Copy, Check, Bookmark } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import { RelaySelector } from '@/components/RelaySelector';
 import { ArticlePreview } from '@/components/ArticlePreview';
@@ -44,6 +46,7 @@ export default function ProfilePage() {
 
   const author = useAuthor(pubkey);
   const { data: posts, isLoading: postsLoading } = useAuthorBlogPosts(pubkey);
+  const { data: bookmarkedArticles, isLoading: bookmarksLoading } = useUserBookmarkedArticles(pubkey);
   
   const metadata = author.data?.metadata;
   const displayName = metadata?.display_name || metadata?.name || genUserName(pubkey);
@@ -210,47 +213,101 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Articles Section */}
-        <div className="mt-8 px-4 md:px-0 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl md:text-2xl font-bold">Articles</h2>
-            {posts && posts.length > 0 && (
-              <Badge variant="secondary" className="text-sm">
-                {posts.length} {posts.length === 1 ? 'post' : 'posts'}
-              </Badge>
-            )}
-          </div>
+        {/* Content Tabs */}
+        <div className="mt-8 px-4 md:px-0">
+          <Tabs defaultValue="articles" className="w-full">
+            <TabsList className="w-full md:w-auto">
+              <TabsTrigger value="articles" className="flex-1 md:flex-initial">
+                Published Articles
+                {posts && posts.length > 0 && (
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    {posts.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="bookmarks" className="flex-1 md:flex-initial">
+                <Bookmark className="h-4 w-4 mr-2" />
+                Bookmarks
+                {bookmarkedArticles && bookmarkedArticles.length > 0 && (
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    {bookmarkedArticles.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-          {postsLoading ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <Card key={i}>
-                  <Skeleton className="h-48 w-full" />
-                  <CardHeader>
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-full mt-2" />
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          ) : posts && posts.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {posts.map((post) => (
-                <ArticlePreview key={post.id} post={post} showAuthor={false} />
-              ))}
-            </div>
-          ) : (
-            <Card className="border-dashed">
-              <CardContent className="py-12 px-8 text-center">
-                <div className="max-w-sm mx-auto space-y-6">
-                  <p className="text-muted-foreground">
-                    No blog posts found from this author. Try another relay?
-                  </p>
-                  <RelaySelector className="w-full" />
+            {/* Published Articles Tab */}
+            <TabsContent value="articles" className="space-y-6">
+              {postsLoading ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i}>
+                      <Skeleton className="h-48 w-full" />
+                      <CardHeader>
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-full mt-2" />
+                      </CardHeader>
+                    </Card>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              ) : posts && posts.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {posts.map((post) => (
+                    <ArticlePreview key={post.id} post={post} showAuthor={false} />
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-dashed">
+                  <CardContent className="py-12 px-8 text-center">
+                    <div className="max-w-sm mx-auto space-y-6">
+                      <p className="text-muted-foreground">
+                        No blog posts found from this author. Try another relay?
+                      </p>
+                      <RelaySelector className="w-full" />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Bookmarks Tab */}
+            <TabsContent value="bookmarks" className="space-y-6">
+              {bookmarksLoading ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i}>
+                      <Skeleton className="h-48 w-full" />
+                      <CardHeader>
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-full mt-2" />
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
+              ) : bookmarkedArticles && bookmarkedArticles.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {bookmarkedArticles.map((post) => (
+                    <ArticlePreview key={post.id} post={post} showAuthor={true} />
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-dashed">
+                  <CardContent className="py-12 px-8 text-center">
+                    <div className="max-w-sm mx-auto space-y-6">
+                      <Bookmark className="h-16 w-16 mx-auto text-muted-foreground" />
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-semibold">No Bookmarks</h3>
+                        <p className="text-muted-foreground">
+                          This user hasn't bookmarked any articles yet.
+                        </p>
+                      </div>
+                      <RelaySelector className="w-full" />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
