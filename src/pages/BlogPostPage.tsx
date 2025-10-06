@@ -8,6 +8,7 @@ import { MarkdownContent } from '@/components/MarkdownContent';
 import { CommentsSection } from '@/components/comments/CommentsSection';
 import { ZapButton } from '@/components/ZapButton';
 import { BookmarkButton } from '@/components/BookmarkButton';
+import { TTSPlayer } from '@/components/TTSPlayer';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -212,6 +213,14 @@ export default function BlogPostPage() {
             showText={true}
           />
         </div>
+
+        <Separator className="my-8" />
+
+        {/* TTS Player section */}
+        <TTSPlayer
+          articleEvent={post}
+          className="mb-8"
+        />
 
         <Separator className="my-8" />
 
