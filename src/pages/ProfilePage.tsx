@@ -13,6 +13,7 @@ import { Link2, Mail, Copy, Check, Bookmark } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import { RelaySelector } from '@/components/RelaySelector';
 import { ArticlePreview } from '@/components/ArticlePreview';
+import { FollowButton } from '@/components/FollowButton';
 import { useToast } from '@/hooks/useToast';
 import NotFound from '@/pages/NotFound';
 import { useState } from 'react';
@@ -159,24 +160,27 @@ export default function ProfilePage() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-3 flex-wrap">
                     <h1 className="text-2xl md:text-3xl font-bold">{displayName}</h1>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopyNpub}
-                      className="gap-2"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="h-4 w-4" />
-                          <span className="hidden sm:inline">Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4" />
-                          <span className="hidden sm:inline">Copy npub</span>
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <FollowButton pubkey={pubkey} />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCopyNpub}
+                        className="gap-2"
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="h-4 w-4" />
+                            <span className="hidden sm:inline">Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4" />
+                            <span className="hidden sm:inline">Copy npub</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                   {metadata?.name && metadata.name !== displayName && (
                     <p className="text-muted-foreground">@{userName}</p>
