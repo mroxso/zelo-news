@@ -8,6 +8,8 @@ import { MarkdownContent } from '@/components/MarkdownContent';
 import { CommentsSection } from '@/components/comments/CommentsSection';
 import { ZapButton } from '@/components/ZapButton';
 import { BookmarkButton } from '@/components/BookmarkButton';
+import { ReadingTime } from '@/components/ReadingTime';
+import { ArticleProgressBar } from '@/components/ArticleProgressBar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Heart, Edit, ArrowLeft } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
+import { calculateReadingTime } from '@/lib/calculateReadingTime';
 import NotFound from '@/pages/NotFound';
 
 export default function BlogPostPage() {
@@ -89,6 +92,9 @@ export default function BlogPostPage() {
     ? new Date(parseInt(publishedAt) * 1000)
     : new Date(post.created_at * 1000);
 
+  // Calculate reading time
+  const readingTime = calculateReadingTime(post.content);
+
   const handleReact = () => {
     if (!user) return;
     if (hasReacted) return;
@@ -97,6 +103,9 @@ export default function BlogPostPage() {
 
   return (
     <div className="min-h-screen">
+      {/* Sticky progress bar */}
+      <ArticleProgressBar />
+      
       <article className="container max-w-4xl py-8 px-4 sm:px-6 lg:px-8">
         {/* Back button */}
         <Button
@@ -120,6 +129,9 @@ export default function BlogPostPage() {
               {summary}
             </p>
           )}
+
+          {/* Reading time */}
+          <ReadingTime minutes={readingTime} />
 
           {/* Author info and metadata */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
