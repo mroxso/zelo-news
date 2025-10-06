@@ -55,7 +55,7 @@ export function ArticleProgressBar({ className }: ArticleProgressBarProps) {
     <div
       ref={progressRef}
       className={cn(
-        'sticky top-0 left-0 right-0 z-40 h-1 bg-muted',
+        'sticky top-16 left-0 right-0 z-40 h-1 bg-muted',
         className
       )}
       role="progressbar"
