@@ -15,15 +15,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Heart, Edit, ArrowLeft } from 'lucide-react';
+import { Calendar, Heart, Edit, ArrowLeft, Share2, Check } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import { calculateReadingTime } from '@/lib/calculateReadingTime';
+import { useToast } from '@/hooks/useToast';
+import { useState } from 'react';
 import NotFound from '@/pages/NotFound';
 
 export default function BlogPostPage() {
   const { nip19: naddr } = useParams<{ nip19: string }>();
   const navigate = useNavigate();
   const { user } = useCurrentUser();
+  const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
 
   // Decode naddr
   let pubkey = '';
@@ -99,6 +103,25 @@ export default function BlogPostPage() {
     if (!user) return;
     if (hasReacted) return;
     react({ eventId: post.id, eventAuthor: post.pubkey });
+  };
+
+  const handleShare = async () => {
+    try {
+      const articleUrl = window.location.href;
+      await navigator.clipboard.writeText(articleUrl);
+      setCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Article link copied to clipboard",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({
+        title: "Failed to copy",
+        description: "Could not copy link to clipboard",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -216,6 +239,19 @@ export default function BlogPostPage() {
             target={post}
             showCount={true}
           />
+
+          <Button
+            variant="outline"
+            onClick={handleShare}
+            className="gap-2"
+          >
+            {copied ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Share2 className="h-4 w-4" />
+            )}
+            <span className="text-xs">Share</span>
+          </Button>
 
           <BookmarkButton
             articleCoordinate={`${post.kind}:${post.pubkey}:${identifier}`}
