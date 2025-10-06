@@ -806,6 +806,110 @@ export function Post(/* ...props */) {
 }
 ```
 
+### Nostr Highlights (NIP-84)
+
+The project implements NIP-84 highlights (kind:9802) for content curation and discovery. Users can highlight valuable passages from articles and optionally add commentary.
+
+#### Highlight Event Structure
+
+**Basic Highlight:**
+```typescript
+{
+  kind: 9802,
+  content: "The highlighted text passage",
+  tags: [
+    ["a", "30023:author-pubkey:d-tag"],  // Reference to source article
+    ["p", "author-pubkey", "relay-url", "author"],  // Article author attribution
+    ["context", "...surrounding paragraph text..."],  // Optional context
+    ["alt", "Highlight: \"The highlighted text...\""]  // NIP-31 alt text
+  ]
+}
+```
+
+**Quote Highlight (with comment):**
+```typescript
+{
+  kind: 9802,
+  content: "The highlighted text passage",
+  tags: [
+    ["a", "30023:author-pubkey:d-tag"],
+    ["p", "author-pubkey", "relay-url", "author"],
+    ["comment", "User's thoughts about this highlight"],
+    ["r", "https://example.com/article", "source"],  // For URLs
+    ["p", "mentioned-user-pubkey", "relay-url", "mention"],  // Mentions in comment
+    ["alt", "Quote Highlight: \"The highlighted text...\" - User comment"]
+  ]
+}
+```
+
+#### Implementation Guidelines
+
+**Tag Requirements:**
+- MUST include one of: `a` tag (for Nostr events), `e` tag (for event IDs), or `r` tag (for URLs)
+- SHOULD include `p` tags with `"author"` role for source content creators
+- MAY include `context` tag for surrounding text
+- Quote highlights use `comment` tag for user commentary
+- Use `"mention"` role for p-tags in comments, `"source"` attribute for source URLs
+
+**Content Field:**
+- Contains the highlighted text passage
+- May be empty for non-text media highlights (future-proof)
+- Maximum recommended length: 500 characters
+
+**URL Cleaning:**
+- Remove tracking parameters (UTM codes, etc.) from `r` tags
+- Normalize URLs for consistency
+
+#### Using Highlights
+
+**Publishing a Highlight:**
+```typescript
+import { usePublishHighlight } from "@/hooks/usePublishHighlight";
+
+function MyComponent() {
+  const { mutate: publishHighlight } = usePublishHighlight();
+
+  const handleHighlight = (selectedText: string, article: NostrEvent) => {
+    publishHighlight({
+      content: selectedText,
+      article,
+      context: "Optional surrounding paragraph",
+      comment: "Optional user commentary"
+    });
+  };
+}
+```
+
+**Querying Highlights:**
+```typescript
+import { useHighlights } from "@/hooks/useHighlights";
+
+// Get all highlights for a specific article
+const { data: highlights } = useHighlights(article.id);
+
+// Get a user's highlights
+import { useUserHighlights } from "@/hooks/useUserHighlights";
+const { data: userHighlights } = useUserHighlights(pubkey);
+```
+
+**Validation:**
+```typescript
+import { validateHighlight } from "@/lib/validators";
+
+// Validate a highlight event
+if (validateHighlight(event)) {
+  // Event is a valid highlight
+}
+```
+
+#### UI Components
+
+- `HighlightButton`: Text selection toolbar action
+- `QuoteHighlightDialog`: Dialog for adding commentary to highlights
+- `HighlightIndicator`: Visual marker on highlighted text
+- `HighlightPopover`: Shows highlight details and authors
+- `HighlightsPage`: Dedicated page for browsing highlights
+
 ## App Configuration
 
 The project includes an `AppProvider` that manages global application state including theme and relay configuration. The default configuration includes:
