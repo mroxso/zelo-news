@@ -76,17 +76,18 @@ export default function BlogPostPage() {
   const readingTime = post ? calculateReadingTime(post.content) : 0;
 
   // SEO metadata for the article (must be called unconditionally)
+  // Only set rich metadata when post data is available
   usePageSEO({
-    title,
-    description: summary || (post ? post.content.slice(0, 160).replace(/\n/g, ' ') : ''),
-    keywords: hashtags.length > 0 ? hashtags : ['nostr', 'article', 'blog'],
-    ogImage: image,
+    title: post ? title : 'Loading...',
+    description: post ? (summary || post.content.slice(0, 160).replace(/\n/g, ' ')) : 'Loading article...',
+    keywords: post && hashtags.length > 0 ? hashtags : ['nostr', 'article', 'blog'],
+    ogImage: post ? image : undefined,
     ogType: 'article',
-    article: {
+    article: post ? {
       publishedTime: date.toISOString(),
       author: displayName,
       tags: hashtags,
-    },
+    } : undefined,
   });
 
   // Check if the current user is the author of this post

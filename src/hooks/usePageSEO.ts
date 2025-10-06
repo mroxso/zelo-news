@@ -124,5 +124,19 @@ export function usePageSEO(config: PageSEOConfig) {
     return () => {
       document.title = baseTitle;
     };
-  }, [config]);
+  }, [
+    config.title,
+    config.description,
+    config.keywords?.join(','),
+    config.canonical,
+    config.ogImage,
+    config.ogType,
+    config.article?.publishedTime,
+    config.article?.modifiedTime,
+    config.article?.author,
+    config.article?.section,
+    config.article?.tags?.join(','),
+    config.twitterCard,
+    config.robots,
+  ]);
 }
