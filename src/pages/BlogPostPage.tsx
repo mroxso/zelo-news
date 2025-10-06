@@ -4,6 +4,8 @@ import { useBlogPost } from '@/hooks/useBlogPost';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useReactions, useReact } from '@/hooks/useReactions';
+import { usePageSEO } from '@/hooks/usePageSEO';
+import { StructuredData } from '@/components/StructuredData';
 import { MarkdownContent } from '@/components/MarkdownContent';
 import { CommentsSection } from '@/components/comments/CommentsSection';
 import { ZapButton } from '@/components/ZapButton';
@@ -57,6 +59,36 @@ export default function BlogPostPage() {
   const metadata = author.data?.metadata;
   const displayName = metadata?.display_name || metadata?.name || genUserName(pubkey);
 
+  // Extract post data (for SEO and rendering)
+  const title = post?.tags.find(([name]) => name === 'title')?.[1] || 'Untitled';
+  const summary = post?.tags.find(([name]) => name === 'summary')?.[1];
+  const image = post?.tags.find(([name]) => name === 'image')?.[1];
+  const publishedAt = post?.tags.find(([name]) => name === 'published_at')?.[1];
+  const hashtags = post?.tags
+    .filter(([name]) => name === 't')
+    .map(([, value]) => value) || [];
+
+  const date = post && publishedAt
+    ? new Date(parseInt(publishedAt) * 1000)
+    : post ? new Date(post.created_at * 1000) : new Date();
+
+  // Calculate reading time
+  const readingTime = post ? calculateReadingTime(post.content) : 0;
+
+  // SEO metadata for the article (must be called unconditionally)
+  usePageSEO({
+    title,
+    description: summary || (post ? post.content.slice(0, 160).replace(/\n/g, ' ') : ''),
+    keywords: hashtags.length > 0 ? hashtags : ['nostr', 'article', 'blog'],
+    ogImage: image,
+    ogType: 'article',
+    article: {
+      publishedTime: date.toISOString(),
+      author: displayName,
+      tags: hashtags,
+    },
+  });
+
   // Check if the current user is the author of this post
   const isPostAuthor = user?.pubkey === post?.pubkey;
   const hasReacted = reactions?.likes.some(like => like.pubkey === user?.pubkey);
@@ -84,21 +116,6 @@ export default function BlogPostPage() {
     return <NotFound />;
   }
 
-  const title = post.tags.find(([name]) => name === 'title')?.[1] || 'Untitled';
-  const summary = post.tags.find(([name]) => name === 'summary')?.[1];
-  const image = post.tags.find(([name]) => name === 'image')?.[1];
-  const publishedAt = post.tags.find(([name]) => name === 'published_at')?.[1];
-  const hashtags = post.tags
-    .filter(([name]) => name === 't')
-    .map(([, value]) => value);
-
-  const date = publishedAt
-    ? new Date(parseInt(publishedAt) * 1000)
-    : new Date(post.created_at * 1000);
-
-  // Calculate reading time
-  const readingTime = calculateReadingTime(post.content);
-
   const handleReact = () => {
     if (!user) return;
     if (hasReacted) return;
@@ -124,10 +141,33 @@ export default function BlogPostPage() {
     }
   };
 
+  const authorNpub = nip19.npubEncode(pubkey);
+  const currentUrl = window.location.href;
+
   return (
-    <div className="min-h-screen">
-      {/* Sticky progress bar */}
-      <ArticleProgressBar />
+    <>
+      <StructuredData 
+        type="article"
+        data={{
+          headline: title,
+          description: summary || post.content.slice(0, 160).replace(/\n/g, ' '),
+          image: image,
+          datePublished: date.toISOString(),
+          author: {
+            name: displayName,
+            url: `https://zelo.news/${authorNpub}`,
+          },
+          publisher: {
+            name: 'zelo.news',
+            logo: 'https://zelo.news/icon-512.png',
+          },
+          url: currentUrl,
+        }}
+      />
+      
+      <div className="min-h-screen">
+        {/* Sticky progress bar */}
+        <ArticleProgressBar />
       
       <article className="container max-w-4xl py-8 px-4 sm:px-6 lg:px-8">
         {/* Back button */}
@@ -269,5 +309,6 @@ export default function BlogPostPage() {
         />
       </article>
     </div>
+    </>
   );
 }

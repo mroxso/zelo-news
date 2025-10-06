@@ -2,11 +2,28 @@ import { SearchBar } from '@/components/SearchBar';
 import { LatestArticles } from '@/components/LatestArticles';
 import { LatestInHashtag } from '@/components/LatestInHashtag';
 import { TrendingTags } from '@/components/TrendingTags';
+import { StructuredData } from '@/components/StructuredData';
+import { usePageSEO } from '@/hooks/usePageSEO';
 import { Music, Leaf, BrainCircuit, Bitcoin } from 'lucide-react';
 
 export default function BlogHomePage() {
+  usePageSEO({
+    description: 'Discover decentralized news and long-form articles on Nostr. Read, write, and share censorship-resistant content powered by the Nostr protocol.',
+    keywords: ['nostr', 'decentralized news', 'blog', 'articles', 'nostr protocol', 'web3', 'censorship-resistant'],
+    ogType: 'website',
+  });
 
   return (
+    <>
+      <StructuredData 
+        type="website"
+        data={{
+          name: 'zelo.news',
+          description: 'Your Source for Decentralized News - Discover articles and content on the Nostr protocol',
+          url: 'https://zelo.news',
+          logo: 'https://zelo.news/icon-512.png',
+        }}
+      />
     <div className="min-h-screen">
       <div className="container max-w-6xl py-8 px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Search bar */}
@@ -45,5 +62,6 @@ export default function BlogHomePage() {
         />
       </div>
     </div>
+    </>
   );
 }

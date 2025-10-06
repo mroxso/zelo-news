@@ -1,5 +1,6 @@
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useFollowingBlogPosts } from '@/hooks/useFollowingBlogPosts';
+import { usePageSEO } from '@/hooks/usePageSEO';
 import { ArticlePreview } from '@/components/ArticlePreview';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,6 +11,12 @@ import { LoginArea } from '@/components/auth/LoginArea';
 export default function FollowingPage() {
   const { user } = useCurrentUser();
   const { data: posts = [], isLoading, isError } = useFollowingBlogPosts();
+
+  usePageSEO({
+    title: 'Following',
+    description: 'Articles from people you follow on Nostr - Stay updated with content from your favorite authors.',
+    robots: 'noindex, nofollow',
+  });
 
   // Show login prompt if user is not logged in
   if (!user) {

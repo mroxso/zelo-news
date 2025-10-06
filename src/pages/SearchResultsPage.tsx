@@ -1,6 +1,7 @@
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
 import { useSearch } from '@/hooks/useSearch';
+import { usePageSEO } from '@/hooks/usePageSEO';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,14 @@ export default function SearchResultsPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const searchTerm = searchParams.get('q') || '';
+  
+  usePageSEO({
+    title: searchTerm ? `Search: ${searchTerm}` : 'Search',
+    description: searchTerm 
+      ? `Search results for "${searchTerm}" on zelo.news - Discover articles and profiles on Nostr.`
+      : 'Search for articles and profiles on zelo.news',
+    robots: 'noindex, nofollow',
+  });
   
   const { data: results, isLoading } = useSearch(searchTerm, true);
 
