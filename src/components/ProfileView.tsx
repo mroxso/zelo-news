@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { nip19 } from 'nostr-tools';
-import type { NostrMetadata } from '@nostrify/nostrify';
+import type { NostrEvent, NostrMetadata } from '@nostrify/nostrify';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -17,24 +17,8 @@ import { useToast } from '@/hooks/useToast';
 interface ProfileViewProps {
   pubkey: string;
   metadata?: NostrMetadata;
-  posts?: Array<{
-    id: string;
-    pubkey: string;
-    kind: number;
-    tags: string[][];
-    content: string;
-    created_at: number;
-    sig: string;
-  }>;
-  bookmarkedArticles?: Array<{
-    id: string;
-    pubkey: string;
-    kind: number;
-    tags: string[][];
-    content: string;
-    created_at: number;
-    sig: string;
-  }>;
+  posts?: NostrEvent[];
+  bookmarkedArticles?: NostrEvent[];
   postsLoading?: boolean;
   bookmarksLoading?: boolean;
 }
