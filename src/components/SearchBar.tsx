@@ -8,11 +8,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { detectSearchInputType } from '@/lib/searchInputDetector';
+import { resolveNip05 } from '@/lib/resolveNip05';
 import type { NostrMetadata } from '@nostrify/nostrify';
 
 export function SearchBar({ className }: { className?: string }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showResults, setShowResults] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   
@@ -52,10 +55,69 @@ export function SearchBar({ className }: { className?: string }) {
     setShowResults(value.length >= 2);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && searchTerm.trim().length >= 2) {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && searchTerm.trim()) {
       setShowResults(false);
-      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      await handleSmartSearch(searchTerm.trim());
+    }
+  };
+
+  const handleSmartSearch = async (input: string) => {
+    const detected = detectSearchInputType(input);
+
+    switch (detected.type) {
+      case 'npub':
+      case 'nprofile':
+        // Navigate directly to profile page
+        navigate(`/${detected.value}`);
+        setSearchTerm('');
+        break;
+
+      case 'naddr':
+        // Navigate directly to article page
+        navigate(`/${detected.value}`);
+        setSearchTerm('');
+        break;
+
+      case 'note':
+      case 'nevent':
+        // Navigate directly to note/event page
+        navigate(`/${detected.value}`);
+        setSearchTerm('');
+        break;
+
+      case 'nip05':
+        // Resolve NIP-05 to pubkey and navigate to profile
+        setIsResolving(true);
+        try {
+          const pubkey = await resolveNip05(detected.value);
+          if (pubkey) {
+            const npub = nip19.npubEncode(pubkey);
+            navigate(`/${npub}`);
+            setSearchTerm('');
+          } else {
+            // Failed to resolve, fall back to search
+            navigate(`/search?q=${encodeURIComponent(detected.value)}`);
+          }
+        } finally {
+          setIsResolving(false);
+        }
+        break;
+
+      case 'hashtag':
+        // Navigate to search page with hashtag
+        navigate(`/search?q=${encodeURIComponent(detected.value)}`);
+        setSearchTerm('');
+        break;
+
+      case 'search':
+      default:
+        // Regular search - only navigate if query is long enough
+        if (detected.value.length >= 2) {
+          navigate(`/search?q=${encodeURIComponent(detected.value)}`);
+          setSearchTerm('');
+        }
+        break;
     }
   };
 
@@ -65,15 +127,15 @@ export function SearchBar({ className }: { className?: string }) {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search users, articles, #tags..."
+          placeholder="Search users, articles, npub, naddr, #tags, NIP-05..."
           value={searchTerm}
           onChange={(e) => handleInputChange(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => searchTerm.length >= 2 && setShowResults(true)}
           className="pl-9 pr-4"
         />
-        {isLoading && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+        {(isLoading || isResolving) && (
+          <Loader2 className="absolute right-3 top-2 text-muted-foreground animate-spin" />
         )}
       </div>
 
