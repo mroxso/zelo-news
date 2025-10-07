@@ -25,18 +25,17 @@ export default function SearchResultsPage() {
     return (
       <div className="min-h-screen">
         <div className="container max-w-6xl py-8 space-y-8">
-          {/* Header */}
-          <div className="space-y-4">
-            <Button variant="ghost" onClick={() => navigate('/')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
-            </Button>
-            <div className="max-w-2xl mx-auto">
-              <SearchBar />
-            </div>
+        {/* Header */}
+        <div className="space-y-4">
+          <Button variant="ghost" onClick={() => window.history.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div className="max-w-2xl mx-auto">
+            <SearchBar />
           </div>
-
-          {/* Loading skeletons */}
+        </div>
+        {/* Loading skeletons */}
           <div className="space-y-6">
             <Skeleton className="h-8 w-48" />
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -60,9 +59,9 @@ export default function SearchResultsPage() {
       <div className="container max-w-6xl py-8 px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header with back button and search */}
         <div className="space-y-4">
-          <Button variant="ghost" onClick={() => navigate('/')}>
+          <Button variant="ghost" onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
+            Back
           </Button>
           <div className="max-w-2xl mx-auto">
             <SearchBar />

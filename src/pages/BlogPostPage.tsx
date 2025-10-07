@@ -134,11 +134,11 @@ export default function BlogPostPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/')}
+          onClick={() => window.history.back()}
           className="mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to home
+          Back
         </Button>
 
         {/* Post header */}
