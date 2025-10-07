@@ -296,7 +296,6 @@ export default function BlogPostPage() {
                 className="gap-2"
               >
                 <Code className="h-4 w-4" />
-                <span className="text-xs">View JSON</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[80vh]">
