@@ -1,4 +1,4 @@
-import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
 import { useSearch } from '@/hooks/useSearch';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -13,7 +13,6 @@ import type { NostrMetadata } from '@nostrify/nostrify';
 
 export default function SearchResultsPage() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const searchTerm = searchParams.get('q') || '';
   
   const { data: results, isLoading } = useSearch(searchTerm, true);

@@ -1,4 +1,4 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
 import { useBlogPost } from '@/hooks/useBlogPost';
 import { useAuthor } from '@/hooks/useAuthor';
@@ -24,7 +24,6 @@ import NotFound from '@/pages/NotFound';
 
 export default function BlogPostPage() {
   const { nip19: naddr } = useParams<{ nip19: string }>();
-  const navigate = useNavigate();
   const { user } = useCurrentUser();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
