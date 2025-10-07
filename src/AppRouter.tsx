@@ -9,6 +9,7 @@ import SearchResultsPage from "./pages/SearchResultsPage";
 import { BookmarksPage } from "./pages/BookmarksPage";
 import FollowingPage from "./pages/FollowingPage";
 import Nip05ProfilePage from "./pages/Nip05ProfilePage";
+import ArticleByDTagPage from "./pages/ArticleByDTagPage";
 import { NIP19Page } from "./pages/NIP19Page";
 import NotFound from "./pages/NotFound";
 
@@ -26,6 +27,8 @@ export function AppRouter() {
           <Route path="/following" element={<FollowingPage />} />
           {/* NIP-05 profile route (e.g., /p/alice@example.com) */}
           <Route path="/p/:nip05" element={<Nip05ProfilePage />} />
+          {/* Article by d-tag route (e.g., /article/my-article-slug) */}
+          <Route path="/article/:dtag" element={<ArticleByDTagPage />} />
           {/* NIP-19 route for all Nostr identifiers (npub, nprofile, naddr, note, nevent) */}
           <Route path="/:nip19" element={<NIP19Page />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
-import { useBlogPost } from '@/hooks/useBlogPost';
+import { useBlogPostByDTag } from '@/hooks/useBlogPostByDTag';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useReactions, useReact } from '@/hooks/useReactions';
@@ -31,46 +31,26 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-export default function BlogPostPage() {
-  const { nip19: naddr } = useParams<{ nip19: string }>();
+export default function ArticleByDTagPage() {
+  const { dtag } = useParams<{ dtag: string }>();
   const { user } = useCurrentUser();
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
   const [jsonCopied, setJsonCopied] = useState(false);
 
-  // Decode naddr
-  let pubkey = '';
-  let identifier = '';
-  let kind = 0;
-  let isValidNaddr = false;
-
-  try {
-    if (naddr?.startsWith('naddr1')) {
-      const decoded = nip19.decode(naddr);
-      if (decoded.type === 'naddr') {
-        pubkey = decoded.data.pubkey;
-        identifier = decoded.data.identifier;
-        kind = decoded.data.kind;
-        isValidNaddr = true;
-      }
-    }
-  } catch (error) {
-    console.error('Failed to decode naddr:', error);
-  }
-
-  const { data: post, isLoading } = useBlogPost(pubkey, identifier);
-  const author = useAuthor(pubkey);
-  const { data: reactions } = useReactions(post?.id || '', pubkey);
+  const { data: post, isLoading } = useBlogPostByDTag(dtag || '');
+  const author = useAuthor(post?.pubkey || '');
+  const { data: reactions } = useReactions(post?.id || '', post?.pubkey || '');
   const { mutate: react } = useReact();
 
   const metadata = author.data?.metadata;
-  const displayName = metadata?.display_name || metadata?.name || genUserName(pubkey);
+  const displayName = metadata?.display_name || metadata?.name || genUserName(post?.pubkey || '');
 
   // Check if the current user is the author of this post
   const isPostAuthor = user?.pubkey === post?.pubkey;
   const hasReacted = reactions?.likes.some(like => like.pubkey === user?.pubkey);
 
-  if (!isValidNaddr || !naddr || kind !== 30023) {
+  if (!dtag) {
     return <NotFound />;
   }
 
@@ -97,6 +77,7 @@ export default function BlogPostPage() {
   const summary = post.tags.find(([name]) => name === 'summary')?.[1];
   const image = post.tags.find(([name]) => name === 'image')?.[1];
   const publishedAt = post.tags.find(([name]) => name === 'published_at')?.[1];
+  const identifier = post.tags.find(([name]) => name === 'd')?.[1] || '';
   const hashtags = post.tags
     .filter(([name]) => name === 't')
     .map(([, value]) => value);
@@ -187,7 +168,7 @@ export default function BlogPostPage() {
 
           {/* Author info and metadata */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <Link to={`/${nip19.npubEncode(pubkey)}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+            <Link to={`/${nip19.npubEncode(post.pubkey)}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                 <AvatarImage src={metadata?.picture} alt={displayName} />
                 <AvatarFallback>{displayName[0]?.toUpperCase()}</AvatarFallback>
@@ -296,7 +277,6 @@ export default function BlogPostPage() {
                 className="gap-2"
               >
                 <Code className="h-4 w-4" />
-                <span className="text-xs">View JSON</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[80vh]">
