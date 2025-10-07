@@ -136,7 +136,7 @@ src/
 │   └── useZaps.ts       # Lightning payments
 ├── pages/               
 │   ├── BlogHomePage.tsx # Homepage with article feed
-│   ├── BlogPostPage.tsx # Individual article view
+│   ├── ArticlePage.tsx # Individual article view
 │   ├── CreatePostPage.tsx # Article editor
 │   └── EditPostPage.tsx # Edit existing articles
 ├── contexts/            # React context providers

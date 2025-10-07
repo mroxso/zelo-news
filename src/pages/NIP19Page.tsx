@@ -1,7 +1,7 @@
 import { nip19 } from 'nostr-tools';
 import { useParams } from 'react-router-dom';
 import ProfilePage from './ProfilePage';
-import BlogPostPage from './BlogPostPage';
+import ArticlePage from './ArticlePage';
 import { NotePage } from './NotePage';
 import { EventPage } from './EventPage';
 import NotFound from './NotFound';
@@ -46,8 +46,8 @@ export function NIP19Page() {
     }
 
     case 'naddr':
-      // Render addressable event (blog post) - BlogPostPage will handle validation
-      return <BlogPostPage />;
+      // Render addressable event (blog post) - ArticlePage will handle validation
+      return <ArticlePage />;
 
     default:
       return <NotFound />;
