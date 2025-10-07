@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link2, Mail, Copy, Check, Bookmark } from 'lucide-react';
+import { Link2, Copy, Check, Bookmark, BadgeCheck, Zap } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import { RelaySelector } from '@/components/RelaySelector';
 import { ArticlePreview } from '@/components/ArticlePreview';
@@ -121,8 +121,14 @@ export function ProfileView({
                   )}
                   {nip05 && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mail className="h-4 w-4" />
+                      <BadgeCheck className="h-4 w-4 text-blue-500" />
                       <span>{nip05}</span>
+                    </div>
+                  )}
+                  {metadata?.lud16 && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Zap className="h-4 w-4 text-yellow-500" />
+                      <span>{metadata.lud16}</span>
                     </div>
                   )}
                 </div>
