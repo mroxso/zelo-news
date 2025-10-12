@@ -2,8 +2,19 @@ import { useSeoMeta } from '@unhead/react';
 
 const Index = () => {
   useSeoMeta({
-    title: 'Welcome to Your Blank App',
-    description: 'A modern Nostr client application built with React, TailwindCSS, and Nostrify.',
+    title: 'zelo.news - Decentralized News on Nostr',
+    description: 'Your source for decentralized news and articles on the Nostr protocol. Read, publish, and discover content from the Nostr network.',
+    ogTitle: 'zelo.news - Decentralized News on Nostr',
+    ogDescription: 'Your source for decentralized news and articles on the Nostr protocol. Read, publish, and discover content from the Nostr network.',
+    ogType: 'website',
+    ogUrl: window.location.href,
+    ogImage: `${window.location.origin}/icon-512.png`,
+    ogSiteName: 'zelo.news',
+    twitterCard: 'summary_large_image',
+    twitterTitle: 'zelo.news - Decentralized News on Nostr',
+    twitterDescription: 'Your source for decentralized news and articles on the Nostr protocol.',
+    twitterImage: `${window.location.origin}/icon-512.png`,
+    twitterSite: '@zelo_news',
   });
 
   return (

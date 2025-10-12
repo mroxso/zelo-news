@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
+import { useSeoMeta } from '@unhead/react';
 import { useNostr } from '@nostrify/react';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -17,6 +18,7 @@ import { Heart, MessageCircle, ArrowLeft } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import type { NostrEvent } from '@nostrify/nostrify';
 import NotFound from './NotFound';
+import { useEffect } from 'react';
 
 interface NotePageProps {
   eventId: string;
@@ -54,6 +56,38 @@ export function NotePage({ eventId }: NotePageProps) {
     if (hasReacted) return;
     react({ eventId: note.id, eventAuthor: note.pubkey });
   };
+
+  // Set SEO meta tags when note data is available
+  useEffect(() => {
+    if (note) {
+      const siteUrl = window.location.origin;
+      const noteUrl = window.location.href;
+      
+      // Create a description from note content
+      const description = note.content.length > 160 
+        ? note.content.substring(0, 157) + '...' 
+        : note.content;
+
+      useSeoMeta({
+        title: `${displayName}'s note - zelo.news`,
+        description,
+        author: displayName,
+        // Open Graph tags for social sharing
+        ogTitle: `Note by ${displayName}`,
+        ogDescription: description,
+        ogType: 'article',
+        ogUrl: noteUrl,
+        ogImage: profileImage || `${siteUrl}/icon-512.png`,
+        ogSiteName: 'zelo.news',
+        // Twitter Card tags
+        twitterCard: 'summary',
+        twitterTitle: `Note by ${displayName}`,
+        twitterDescription: description,
+        twitterImage: profileImage || `${siteUrl}/icon-512.png`,
+        twitterSite: '@zelo_news',
+      });
+    }
+  }, [note, displayName, profileImage]);
 
   if (isLoading) {
     return (

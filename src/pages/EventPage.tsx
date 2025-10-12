@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
+import { useSeoMeta } from '@unhead/react';
 import { useNostr } from '@nostrify/react';
 import { useAuthor } from '@/hooks/useAuthor';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import { ArrowLeft, Calendar, Hash } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import type { NostrEvent } from '@nostrify/nostrify';
 import NotFound from './NotFound';
+import { useEffect } from 'react';
 
 interface EventPageProps {
   eventId: string;
@@ -53,6 +55,40 @@ export function EventPage({ eventId, relayHints, authorPubkey, kind }: EventPage
   const metadata = author.data?.metadata;
   const displayName = metadata?.display_name || metadata?.name || genUserName(event?.pubkey || '');
   const profileImage = metadata?.picture;
+
+  // Set SEO meta tags when event data is available
+  useEffect(() => {
+    if (event) {
+      const siteUrl = window.location.origin;
+      const eventUrl = window.location.href;
+      
+      // Create a description from event content
+      const description = event.content 
+        ? (event.content.length > 160 
+          ? event.content.substring(0, 157) + '...' 
+          : event.content)
+        : `Kind ${event.kind} event by ${displayName} on zelo.news`;
+
+      useSeoMeta({
+        title: `Event (kind ${event.kind}) by ${displayName} - zelo.news`,
+        description,
+        author: displayName,
+        // Open Graph tags for social sharing
+        ogTitle: `Kind ${event.kind} event by ${displayName}`,
+        ogDescription: description,
+        ogType: 'article',
+        ogUrl: eventUrl,
+        ogImage: profileImage || `${siteUrl}/icon-512.png`,
+        ogSiteName: 'zelo.news',
+        // Twitter Card tags
+        twitterCard: 'summary',
+        twitterTitle: `Kind ${event.kind} event by ${displayName}`,
+        twitterDescription: description,
+        twitterImage: profileImage || `${siteUrl}/icon-512.png`,
+        twitterSite: '@zelo_news',
+      });
+    }
+  }, [event, displayName, profileImage]);
 
   if (isLoading) {
     return (

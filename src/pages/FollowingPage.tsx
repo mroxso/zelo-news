@@ -1,3 +1,4 @@
+import { useSeoMeta } from '@unhead/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useFollowingBlogPosts } from '@/hooks/useFollowingBlogPosts';
 import { ArticlePreview } from '@/components/ArticlePreview';
@@ -10,6 +11,12 @@ import { LoginArea } from '@/components/auth/LoginArea';
 export default function FollowingPage() {
   const { user } = useCurrentUser();
   const { data: posts = [], isLoading, isError } = useFollowingBlogPosts();
+
+  useSeoMeta({
+    title: 'Following - zelo.news',
+    description: 'Read articles from people you follow on zelo.news',
+    robots: 'noindex', // Don't index personal following feeds
+  });
 
   // Show login prompt if user is not logged in
   if (!user) {

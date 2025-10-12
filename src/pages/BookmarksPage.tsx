@@ -1,3 +1,4 @@
+import { useSeoMeta } from '@unhead/react';
 import { ArticlePreview } from '@/components/ArticlePreview';
 import { RelaySelector } from '@/components/RelaySelector';
 import { LoginArea } from '@/components/auth/LoginArea';
@@ -12,6 +13,12 @@ export function BookmarksPage() {
   const { user } = useCurrentUser();
   const { data: bookmarks = [], isLoading: isLoadingBookmarks } = useBookmarks();
   const { data: articles = [], isLoading: isLoadingArticles } = useBookmarkedArticles();
+
+  useSeoMeta({
+    title: 'My Bookmarks - zelo.news',
+    description: 'View your saved articles and bookmarks on zelo.news',
+    robots: 'noindex', // Don't index personal bookmarks pages
+  });
 
   const isLoading = isLoadingBookmarks || isLoadingArticles;
 

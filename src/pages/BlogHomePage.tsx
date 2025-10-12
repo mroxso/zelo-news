@@ -1,3 +1,4 @@
+import { useSeoMeta } from '@unhead/react';
 import { SearchBar } from '@/components/SearchBar';
 import { LatestArticles } from '@/components/LatestArticles';
 import { LatestInHashtag } from '@/components/LatestInHashtag';
@@ -5,6 +6,21 @@ import { TrendingTags } from '@/components/TrendingTags';
 import { Music, Leaf, BrainCircuit, Bitcoin } from 'lucide-react';
 
 export default function BlogHomePage() {
+  useSeoMeta({
+    title: 'zelo.news - Decentralized News on Nostr',
+    description: 'Your source for decentralized news and articles on the Nostr protocol. Read, publish, and discover content from the Nostr network.',
+    ogTitle: 'zelo.news - Decentralized News on Nostr',
+    ogDescription: 'Your source for decentralized news and articles on the Nostr protocol. Read, publish, and discover content from the Nostr network.',
+    ogType: 'website',
+    ogUrl: window.location.href,
+    ogImage: `${window.location.origin}/icon-512.png`,
+    ogSiteName: 'zelo.news',
+    twitterCard: 'summary_large_image',
+    twitterTitle: 'zelo.news - Decentralized News on Nostr',
+    twitterDescription: 'Your source for decentralized news and articles on the Nostr protocol.',
+    twitterImage: `${window.location.origin}/icon-512.png`,
+    twitterSite: '@zelo_news',
+  });
 
   return (
     <div className="min-h-screen">
