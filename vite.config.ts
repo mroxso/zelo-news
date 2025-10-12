@@ -53,7 +53,7 @@ export default defineConfig(() => ({
             },
           },
           {
-            urlPattern: /^https:\/\/.*\.(wss?):\/\/.*/,
+            urlPattern: /^(https|wss):\/\/.*/,
             handler: 'NetworkOnly',
           },
         ],
