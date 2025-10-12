@@ -8,7 +8,6 @@ import { ProfileView } from '@/components/ProfileView';
 import { ProfileSkeleton } from '@/components/ProfileSkeleton';
 import NotFound from '@/pages/NotFound';
 import { genUserName } from '@/lib/genUserName';
-import { useEffect } from 'react';
 
 export default function ProfilePage() {
   const { nip19: npub } = useParams<{ nip19: string }>();
@@ -47,44 +46,41 @@ export default function ProfilePage() {
   const nip05 = metadata?.nip05;
 
   // Set SEO meta tags when author data is available
-  useEffect(() => {
-    if (author.data && isValidProfile) {
-      const siteUrl = window.location.origin;
-      const profileUrl = window.location.href;
-      
-      // Create a description from about or default
-      const description = about 
-        ? (about.length > 160 ? about.substring(0, 157) + '...' : about)
-        : `View ${displayName}'s profile and articles on zelo.news`;
+  const siteUrl = window.location.origin;
+  const profileUrl = window.location.href;
+  
+  // Create a description from about or default
+  const description = about 
+    ? (about.length > 160 ? about.substring(0, 157) + '...' : about)
+    : `View ${displayName}'s profile and articles on zelo.news`;
 
-      const articleCount = posts?.length || 0;
-      const enrichedDescription = articleCount > 0 
-        ? `${description} • ${articleCount} article${articleCount !== 1 ? 's' : ''} published`
-        : description;
+  const articleCount = posts?.length || 0;
+  const enrichedDescription = author.data && articleCount > 0 
+    ? `${description} • ${articleCount} article${articleCount !== 1 ? 's' : ''} published`
+    : description;
 
-      useSeoMeta({
-        title: `${displayName} - Profile - zelo.news`,
-        description: enrichedDescription,
-        author: displayName,
-        // Open Graph tags for social sharing
-        ogTitle: `${displayName} on zelo.news`,
-        ogDescription: enrichedDescription,
-        ogType: 'profile',
-        ogUrl: profileUrl,
-        ogImage: banner || picture || `${siteUrl}/icon-512.png`,
-        ogSiteName: 'zelo.news',
-        // Profile-specific OG tags
-        profileUsername: displayName,
-        ...(nip05 && { profileUsername: nip05 }),
-        // Twitter Card tags
-        twitterCard: picture ? 'summary_large_image' : 'summary',
-        twitterTitle: `${displayName} on zelo.news`,
-        twitterDescription: enrichedDescription,
-        twitterImage: banner || picture || `${siteUrl}/icon-512.png`,
-        twitterSite: '@zelo_news',
-      });
-    }
-  }, [author.data, isValidProfile, displayName, about, picture, banner, nip05, posts]);
+  useSeoMeta({
+    title: author.data && isValidProfile ? `${displayName} - Profile - zelo.news` : 'Profile - zelo.news',
+    description: enrichedDescription,
+    author: displayName,
+    // Open Graph tags for social sharing
+    ogTitle: `${displayName} on zelo.news`,
+    ogDescription: enrichedDescription,
+    ogType: 'profile',
+    ogUrl: profileUrl,
+    ogImage: banner || picture || `${siteUrl}/icon-512.png`,
+    ogSiteName: 'zelo.news',
+    // Profile-specific OG tags
+    ...(author.data && isValidProfile && {
+      profileUsername: nip05 || displayName,
+    }),
+    // Twitter Card tags
+    twitterCard: picture ? 'summary_large_image' : 'summary',
+    twitterTitle: `${displayName} on zelo.news`,
+    twitterDescription: enrichedDescription,
+    twitterImage: banner || picture || `${siteUrl}/icon-512.png`,
+    twitterSite: '@zelo_news',
+  });
 
   // If not a valid profile identifier, show 404
   if (!isValidProfile || !pubkey) {

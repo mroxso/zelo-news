@@ -7,7 +7,6 @@ import { ArticleView } from '@/components/ArticleView';
 import { Skeleton } from '@/components/ui/skeleton';
 import NotFound from '@/pages/NotFound';
 import { genUserName } from '@/lib/genUserName';
-import { useEffect } from 'react';
 
 export default function ArticlePage() {
   const { nip19: naddr } = useParams<{ nip19: string }>();
@@ -51,41 +50,39 @@ export default function ArticlePage() {
     : post ? new Date(post.created_at * 1000) : new Date();
 
   // Set SEO meta tags when post data is available
-  useEffect(() => {
-    if (post && isValidNaddr) {
-      const siteUrl = window.location.origin;
-      const articleUrl = window.location.href;
-      
-      // Create a description from summary or content
-      const description = summary || 
-        (post.content.length > 160 
-          ? post.content.substring(0, 157) + '...' 
-          : post.content);
+  const siteUrl = window.location.origin;
+  const articleUrl = window.location.href;
+  
+  // Create a description from summary or content
+  const description = post && (summary || 
+    (post.content.length > 160 
+      ? post.content.substring(0, 157) + '...' 
+      : post.content)) || 'Article on zelo.news';
 
-      useSeoMeta({
-        title: `${title} - ${authorName} - zelo.news`,
-        description,
-        author: authorName,
-        // Open Graph tags for social sharing
-        ogTitle: title,
-        ogDescription: description,
-        ogType: 'article',
-        ogUrl: articleUrl,
-        ogImage: image || `${siteUrl}/icon-512.png`,
-        ogSiteName: 'zelo.news',
-        // Article-specific OG tags
-        articlePublishedTime: date.toISOString(),
-        articleAuthor: [authorName],
-        ...(hashtags.length > 0 && { articleTag: hashtags }),
-        // Twitter Card tags
-        twitterCard: 'summary_large_image',
-        twitterTitle: title,
-        twitterDescription: description,
-        twitterImage: image || `${siteUrl}/icon-512.png`,
-        twitterSite: '@zelo_news',
-      });
-    }
-  }, [post, isValidNaddr, title, summary, image, authorName, hashtags, date]);
+  useSeoMeta({
+    title: post && isValidNaddr ? `${title} - ${authorName} - zelo.news` : 'Article - zelo.news',
+    description,
+    author: authorName,
+    // Open Graph tags for social sharing
+    ogTitle: title,
+    ogDescription: description,
+    ogType: 'article',
+    ogUrl: articleUrl,
+    ogImage: image || `${siteUrl}/icon-512.png`,
+    ogSiteName: 'zelo.news',
+    // Article-specific OG tags
+    ...(post && isValidNaddr && {
+      articlePublishedTime: date.toISOString(),
+      articleAuthor: [authorName],
+      ...(hashtags.length > 0 && { articleTag: hashtags }),
+    }),
+    // Twitter Card tags
+    twitterCard: 'summary_large_image',
+    twitterTitle: title,
+    twitterDescription: description,
+    twitterImage: image || `${siteUrl}/icon-512.png`,
+    twitterSite: '@zelo_news',
+  });
 
   if (!isValidNaddr || !naddr || kind !== 30023) {
     return <NotFound />;

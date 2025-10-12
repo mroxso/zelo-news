@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { SearchBar } from '@/components/SearchBar';
 import { ArticlePreview } from '@/components/ArticlePreview';
 import type { NostrMetadata } from '@nostrify/nostrify';
-import { useEffect } from 'react';
 
 export default function SearchResultsPage() {
   const [searchParams] = useSearchParams();
@@ -20,24 +19,22 @@ export default function SearchResultsPage() {
   const { data: results, isLoading } = useSearch(searchTerm, true);
 
   // Set SEO meta tags
-  useEffect(() => {
-    const resultCount = results?.length || 0;
-    const isHashtagSearch = searchTerm.startsWith('#');
-    
-    const title = isHashtagSearch 
-      ? `Articles tagged ${searchTerm} - zelo.news`
-      : `Search: ${searchTerm} - zelo.news`;
-    
-    const description = isHashtagSearch
-      ? `Browse ${resultCount} article${resultCount !== 1 ? 's' : ''} tagged with ${searchTerm} on zelo.news`
-      : `Found ${resultCount} result${resultCount !== 1 ? 's' : ''} for "${searchTerm}" on zelo.news`;
+  const resultCount = results?.length || 0;
+  const isHashtagSearch = searchTerm.startsWith('#');
+  
+  const title = isHashtagSearch 
+    ? `Articles tagged ${searchTerm} - zelo.news`
+    : `Search: ${searchTerm} - zelo.news`;
+  
+  const description = isHashtagSearch
+    ? `Browse ${resultCount} article${resultCount !== 1 ? 's' : ''} tagged with ${searchTerm} on zelo.news`
+    : `Found ${resultCount} result${resultCount !== 1 ? 's' : ''} for "${searchTerm}" on zelo.news`;
 
-    useSeoMeta({
-      title,
-      description,
-      robots: 'noindex', // Don't index search results pages
-    });
-  }, [searchTerm, results]);
+  useSeoMeta({
+    title,
+    description,
+    robots: 'noindex', // Don't index search results pages
+  });
 
   const profiles = results?.filter(r => r.type === 'profile') || [];
   const articles = results?.filter(r => r.type === 'article') || [];

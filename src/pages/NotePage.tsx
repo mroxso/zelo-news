@@ -18,7 +18,6 @@ import { Heart, MessageCircle, ArrowLeft } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import type { NostrEvent } from '@nostrify/nostrify';
 import NotFound from './NotFound';
-import { useEffect } from 'react';
 
 interface NotePageProps {
   eventId: string;
@@ -58,36 +57,34 @@ export function NotePage({ eventId }: NotePageProps) {
   };
 
   // Set SEO meta tags when note data is available
-  useEffect(() => {
-    if (note) {
-      const siteUrl = window.location.origin;
-      const noteUrl = window.location.href;
-      
-      // Create a description from note content
-      const description = note.content.length > 160 
-        ? note.content.substring(0, 157) + '...' 
-        : note.content;
+  const siteUrl = window.location.origin;
+  const noteUrl = window.location.href;
+  
+  // Create a description from note content
+  const description = note 
+    ? (note.content.length > 160 
+      ? note.content.substring(0, 157) + '...' 
+      : note.content)
+    : 'Note on zelo.news';
 
-      useSeoMeta({
-        title: `${displayName}'s note - zelo.news`,
-        description,
-        author: displayName,
-        // Open Graph tags for social sharing
-        ogTitle: `Note by ${displayName}`,
-        ogDescription: description,
-        ogType: 'article',
-        ogUrl: noteUrl,
-        ogImage: profileImage || `${siteUrl}/icon-512.png`,
-        ogSiteName: 'zelo.news',
-        // Twitter Card tags
-        twitterCard: 'summary',
-        twitterTitle: `Note by ${displayName}`,
-        twitterDescription: description,
-        twitterImage: profileImage || `${siteUrl}/icon-512.png`,
-        twitterSite: '@zelo_news',
-      });
-    }
-  }, [note, displayName, profileImage]);
+  useSeoMeta({
+    title: note ? `${displayName}'s note - zelo.news` : 'Note - zelo.news',
+    description,
+    author: displayName,
+    // Open Graph tags for social sharing
+    ogTitle: `Note by ${displayName}`,
+    ogDescription: description,
+    ogType: 'article',
+    ogUrl: noteUrl,
+    ogImage: profileImage || `${siteUrl}/icon-512.png`,
+    ogSiteName: 'zelo.news',
+    // Twitter Card tags
+    twitterCard: 'summary',
+    twitterTitle: `Note by ${displayName}`,
+    twitterDescription: description,
+    twitterImage: profileImage || `${siteUrl}/icon-512.png`,
+    twitterSite: '@zelo_news',
+  });
 
   if (isLoading) {
     return (
