@@ -45,6 +45,7 @@ export function useSearch(searchTerm: string, enabled = true) {
         [
           {
             kinds: [0, 30023],
+            search: term,
             // limit: 100,
           },
         ],
