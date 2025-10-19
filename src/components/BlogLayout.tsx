@@ -1,15 +1,15 @@
 import { ReactNode } from 'react';
-import { BlogHeader } from './BlogHeader';
+import { Header } from './BlogHeader';
 import packageJson from '../../package.json';
 
 interface BlogLayoutProps {
   children: ReactNode;
 }
 
-export function BlogLayout({ children }: BlogLayoutProps) {
+export function Layout({ children }: BlogLayoutProps) {
   return (
     <div className="min-h-screen flex flex-col">
-      <BlogHeader />
+      <Header />
       <main className="flex-1">
         {children}
       </main>

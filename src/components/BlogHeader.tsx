@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useState } from 'react';
 
-export function BlogHeader() {
+export function Header() {
   const { user } = useCurrentUser();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
