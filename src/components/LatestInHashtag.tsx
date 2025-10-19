@@ -15,7 +15,7 @@ const INITIAL_POSTS_COUNT = 3;
 
 export function LatestInHashtag({ hashtag, icon }: LatestInHashtagProps) {
   const navigate = useNavigate();
-  const { data: posts, isLoading } = useBlogPostsByHashtag(hashtag);
+  const { data: posts, isLoading } = useBlogPostsByHashtag(hashtag, 4);
 
   // Loading state
   if (isLoading) {
@@ -60,9 +60,9 @@ export function LatestInHashtag({ hashtag, icon }: LatestInHashtagProps) {
           <h2 className="text-3xl font-bold tracking-tight">
             Latest in #{hashtag}
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          {/* <p className="text-sm text-muted-foreground mt-1">
             {posts.length} {posts.length === 1 ? 'article' : 'articles'} in this category
-          </p>
+          </p> */}
         </div>
         {hasMore && (
           <Button

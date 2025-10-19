@@ -26,7 +26,7 @@ function validateBlogPost(event: NostrEvent): event is BlogPost {
 /**
  * Hook to fetch blog posts filtered by a specific hashtag
  */
-export function useBlogPostsByHashtag(hashtag: string) {
+export function useBlogPostsByHashtag(hashtag: string, limit: number = 50) {
   const { nostr } = useNostr();
 
   return useQuery({
@@ -38,7 +38,7 @@ export function useBlogPostsByHashtag(hashtag: string) {
         [{
           kinds: [30023],
           '#t': [hashtag.toLowerCase()],
-          limit: 50,
+          limit: limit,
         }],
         { signal }
       );

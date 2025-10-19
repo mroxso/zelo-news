@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
+import { useSeoMeta } from '@unhead/react';
 import { useNostr } from '@nostrify/react';
 import { useAuthor } from '@/hooks/useAuthor';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -53,6 +54,38 @@ export function EventPage({ eventId, relayHints, authorPubkey, kind }: EventPage
   const metadata = author.data?.metadata;
   const displayName = metadata?.display_name || metadata?.name || genUserName(event?.pubkey || '');
   const profileImage = metadata?.picture;
+
+  // Set SEO meta tags when event data is available
+  const siteUrl = window.location.origin;
+  const eventUrl = window.location.href;
+  
+  // Create a description from event content
+  const description = event && event.content 
+    ? (event.content.length > 160 
+      ? event.content.substring(0, 157) + '...' 
+      : event.content)
+    : event 
+      ? `Kind ${event.kind} event by ${displayName} on zelo.news`
+      : 'Event on zelo.news';
+
+  useSeoMeta({
+    title: event ? `Event (kind ${event.kind}) by ${displayName} - zelo.news` : 'Event - zelo.news',
+    description,
+    author: displayName,
+    // Open Graph tags for social sharing
+    ogTitle: event ? `Kind ${event.kind} event by ${displayName}` : 'Event on zelo.news',
+    ogDescription: description,
+    ogType: 'article',
+    ogUrl: eventUrl,
+    ogImage: profileImage || `${siteUrl}/icon-512.png`,
+    ogSiteName: 'zelo.news',
+    // Twitter Card tags
+    twitterCard: 'summary',
+    twitterTitle: event ? `Kind ${event.kind} event by ${displayName}` : 'Event on zelo.news',
+    twitterDescription: description,
+    twitterImage: profileImage || `${siteUrl}/icon-512.png`,
+    twitterSite: '@zelo_news',
+  });
 
   if (isLoading) {
     return (

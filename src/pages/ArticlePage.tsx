@@ -1,9 +1,12 @@
 import { useParams } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
+import { useSeoMeta } from '@unhead/react';
 import { useBlogPost } from '@/hooks/useBlogPost';
+import { useAuthor } from '@/hooks/useAuthor';
 import { ArticleView } from '@/components/ArticleView';
 import { Skeleton } from '@/components/ui/skeleton';
 import NotFound from '@/pages/NotFound';
+import { genUserName } from '@/lib/genUserName';
 
 export default function ArticlePage() {
   const { nip19: naddr } = useParams<{ nip19: string }>();
@@ -28,6 +31,58 @@ export default function ArticlePage() {
   }
 
   const { data: post, isLoading } = useBlogPost(pubkey, identifier);
+  const author = useAuthor(pubkey);
+
+  // Extract article metadata
+  const title = post?.tags.find(([name]) => name === 'title')?.[1] || 'Article';
+  const summary = post?.tags.find(([name]) => name === 'summary')?.[1];
+  const image = post?.tags.find(([name]) => name === 'image')?.[1];
+  const publishedAt = post?.tags.find(([name]) => name === 'published_at')?.[1];
+  const hashtags = post?.tags
+    .filter(([name]) => name === 't')
+    .map(([, value]) => value) || [];
+
+  const metadata = author.data?.metadata;
+  const authorName = metadata?.display_name || metadata?.name || genUserName(pubkey);
+
+  const date = publishedAt
+    ? new Date(parseInt(publishedAt) * 1000)
+    : post ? new Date(post.created_at * 1000) : new Date();
+
+  // Set SEO meta tags when post data is available
+  const siteUrl = window.location.origin;
+  const articleUrl = window.location.href;
+  
+  // Create a description from summary or content
+  const description = post && (summary || 
+    (post.content.length > 160 
+      ? post.content.substring(0, 157) + '...' 
+      : post.content)) || 'Article on zelo.news';
+
+  useSeoMeta({
+    title: post && isValidNaddr ? `${title} - ${authorName} - zelo.news` : 'Article - zelo.news',
+    description,
+    author: authorName,
+    // Open Graph tags for social sharing
+    ogTitle: title,
+    ogDescription: description,
+    ogType: 'article',
+    ogUrl: articleUrl,
+    ogImage: image || `${siteUrl}/icon-512.png`,
+    ogSiteName: 'zelo.news',
+    // Article-specific OG tags
+    ...(post && isValidNaddr && {
+      articlePublishedTime: date.toISOString(),
+      articleAuthor: [authorName],
+      ...(hashtags.length > 0 && { articleTag: hashtags }),
+    }),
+    // Twitter Card tags
+    twitterCard: 'summary_large_image',
+    twitterTitle: title,
+    twitterDescription: description,
+    twitterImage: image || `${siteUrl}/icon-512.png`,
+    twitterSite: '@zelo_news',
+  });
 
   if (!isValidNaddr || !naddr || kind !== 30023) {
     return <NotFound />;
