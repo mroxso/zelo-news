@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
-import { Layout } from "./components/BlogLayout";
+import { Layout } from "./components/Layout";
 import CreatePostPage from "./pages/CreatePostPage";
 import EditPostPage from "./pages/EditPostPage";
 import SearchResultsPage from "./pages/SearchResultsPage";

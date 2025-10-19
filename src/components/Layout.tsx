@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Header } from './BlogHeader';
+import { Header } from './Header';
 import packageJson from '../../package.json';
 
 interface BlogLayoutProps {
