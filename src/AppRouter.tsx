@@ -1,8 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { BlogLayout } from "./components/BlogLayout";
-
-import BlogHomePage from "./pages/BlogHomePage";
 import CreatePostPage from "./pages/CreatePostPage";
 import EditPostPage from "./pages/EditPostPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
@@ -12,6 +10,7 @@ import Nip05ProfilePage from "./pages/Nip05ProfilePage";
 import ArticleByDTagPage from "./pages/ArticleByDTagPage";
 import { NIP19Page } from "./pages/NIP19Page";
 import NotFound from "./pages/NotFound";
+import HomePage from "./pages/HomePage";
 
 export function AppRouter() {
   return (
@@ -19,7 +18,7 @@ export function AppRouter() {
       <ScrollToTop />
       <BlogLayout>
         <Routes>
-          <Route path="/" element={<BlogHomePage />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/create" element={<CreatePostPage />} />
           <Route path="/edit/:identifier" element={<EditPostPage />} />
           <Route path="/search" element={<SearchResultsPage />} />

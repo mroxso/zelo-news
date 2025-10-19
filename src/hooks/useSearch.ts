@@ -31,7 +31,7 @@ export function useSearch(searchTerm: string, enabled = true) {
             {
               kinds: [30023],
               '#t': [tagValue],
-              limit: 100,
+              // limit: 100,
             },
           ],
           { signal }
@@ -45,7 +45,7 @@ export function useSearch(searchTerm: string, enabled = true) {
         [
           {
             kinds: [0, 30023],
-            limit: 100,
+            // limit: 100,
           },
         ],
         { signal }

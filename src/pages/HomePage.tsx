@@ -3,9 +3,9 @@ import { SearchBar } from '@/components/SearchBar';
 import { LatestArticles } from '@/components/LatestArticles';
 import { LatestInHashtag } from '@/components/LatestInHashtag';
 import { TrendingTags } from '@/components/TrendingTags';
-import { Music, Leaf, BrainCircuit, Bitcoin } from 'lucide-react';
+import { Music, Leaf, BrainCircuit, Bitcoin, Newspaper } from 'lucide-react';
 
-export default function BlogHomePage() {
+export default function HomePage() {
   useSeoMeta({
     title: 'zelo.news - Decentralized News on Nostr',
     description: 'Your source for decentralized news and articles on the Nostr protocol. Read, publish, and discover content from the Nostr network.',
@@ -35,6 +35,12 @@ export default function BlogHomePage() {
 
         {/* Latest Articles */}
         <LatestArticles />
+
+        {/* Latest in #news */}
+        <LatestInHashtag 
+          hashtag="news" 
+          icon={<Newspaper className="h-6 w-6 text-primary" />}
+        />
 
         {/* Latest in #music */}
         <LatestInHashtag 
