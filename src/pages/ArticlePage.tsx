@@ -81,7 +81,6 @@ export default function ArticlePage() {
     twitterTitle: title,
     twitterDescription: description,
     twitterImage: image || `${siteUrl}/icon-512.png`,
-    twitterSite: '@zelo_news',
   });
 
   if (!isValidNaddr || !naddr || kind !== 30023) {
