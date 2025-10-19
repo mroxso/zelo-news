@@ -2,11 +2,11 @@ import { ReactNode } from 'react';
 import { Header } from './Header';
 import packageJson from '../../package.json';
 
-interface BlogLayoutProps {
+interface LayoutProps {
   children: ReactNode;
 }
 
-export function Layout({ children }: BlogLayoutProps) {
+export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
