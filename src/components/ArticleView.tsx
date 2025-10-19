@@ -226,14 +226,14 @@ export function ArticleView({ post }: ArticleViewProps) {
             ) : (
               <Share2 className="h-4 w-4" />
             )}
-            <span className="text-xs">Share</span>
+            {/* <span className="text-xs">Share</span> */}
           </Button>
 
           <BookmarkButton
             articleCoordinate={`${post.kind}:${post.pubkey}:${identifier}`}
             variant="outline"
             size="default"
-            showText={true}
+            showText={false}
           />
 
           <Dialog>
