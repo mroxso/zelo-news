@@ -39,10 +39,24 @@ export function RelaySelector(props: RelaySelectorProps) {
 
   const selectedOption = presetRelays.find((option) => option.url === selectedRelay);
 
+  // Function to normalize relay URL by adding wss:// if no protocol is present
+  const normalizeRelayUrl = (url: string): string => {
+    const trimmed = url.trim();
+    if (!trimmed) return trimmed;
+    
+    // Check if it already has a protocol
+    if (trimmed.includes('://')) {
+      return trimmed;
+    }
+    
+    // Add wss:// prefix
+    return `wss://${trimmed}`;
+  };
+
   // Build combined relay options: preset relays + user's NIP-65 relays (deduped)
   const combinedRelays = useMemo(() => {
     // Normalize helper to ensure matching with selected values
-    const normalize = (url: string) => url.replace(/^wss?:\/\//, "");
+    const normalize = (url: string) => normalizeRelayUrl(url);
 
     const preset = presetRelays.map((r) => ({ ...r, source: "preset" as const }));
 
@@ -66,20 +80,6 @@ export function RelaySelector(props: RelaySelectorProps) {
     const presetOnly = all.filter((r) => r.source === "preset");
     return { all, userOnly, presetOnly };
   }, [presetRelays, userRelays]);
-
-  // Function to normalize relay URL by adding wss:// if no protocol is present
-  const normalizeRelayUrl = (url: string): string => {
-    const trimmed = url.trim();
-    if (!trimmed) return trimmed;
-    
-    // Check if it already has a protocol
-    if (trimmed.includes('://')) {
-      return trimmed;
-    }
-    
-    // Add wss:// prefix
-    return `wss://${trimmed}`;
-  };
 
   // Handle adding a custom relay
   const handleAddCustomRelay = (url: string) => {

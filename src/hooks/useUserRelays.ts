@@ -39,8 +39,13 @@ function extractRelaysFromEvent(event?: NostrEvent): string[] {
 }
 
 /**
- * Fetch the latest NIP-65 Relay List (kind 10002) for a user and return relay URLs.
- * Enabled only when a pubkey is provided.
+ * Fetches the latest NIP-65 Relay List (kind 10002) for a user and returns an array of normalized relay URLs.
+ *
+ * Returns a React Query result containing the array of relay URLs.
+ * The query is disabled when `pubkey` is undefined.
+ *
+ * @param {string} [pubkey] - The public key of the user whose relay list to fetch.
+ * @returns {import("@tanstack/react-query").UseQueryResult<string[], unknown>} React Query result with an array of normalized relay URLs.
  */
 export function useUserRelays(pubkey?: string) {
   const { nostr } = useNostr();
