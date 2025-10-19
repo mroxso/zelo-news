@@ -14,8 +14,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAppContext } from "@/hooks/useAppContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useUserRelays } from "@/hooks/useUserRelays";
 
 interface RelaySelectorProps {
   className?: string;
@@ -24,6 +26,8 @@ interface RelaySelectorProps {
 export function RelaySelector(props: RelaySelectorProps) {
   const { className } = props;
   const { config, updateConfig, presetRelays = [] } = useAppContext();
+  const { user } = useCurrentUser();
+  const { data: userRelays = [] } = useUserRelays(user?.pubkey);
   
   const selectedRelay = config.relayUrl;
   const setSelectedRelay = (relay: string) => {
@@ -34,6 +38,34 @@ export function RelaySelector(props: RelaySelectorProps) {
   const [inputValue, setInputValue] = useState("");
 
   const selectedOption = presetRelays.find((option) => option.url === selectedRelay);
+
+  // Build combined relay options: preset relays + user's NIP-65 relays (deduped)
+  const combinedRelays = useMemo(() => {
+    // Normalize helper to ensure matching with selected values
+    const normalize = (url: string) => url.replace(/^wss?:\/\//, "");
+
+    const preset = presetRelays.map((r) => ({ ...r, source: "preset" as const }));
+
+    // Convert user relay URLs into the same shape with a default name
+    const fromUser = userRelays
+      .filter(Boolean)
+      .map((url) => ({
+        name: normalize(url),
+        url,
+        source: "user" as const,
+      }));
+
+    // Deduplicate by URL
+    const map = new Map<string, { name: string; url: string; source: "preset" | "user" }>();
+    for (const r of [...preset, ...fromUser]) {
+      if (!map.has(r.url)) map.set(r.url, r);
+    }
+
+    const all = Array.from(map.values());
+    const userOnly = all.filter((r) => r.source === "user" && !presetRelays.some((p) => p.url === r.url));
+    const presetOnly = all.filter((r) => r.source === "preset");
+    return { all, userOnly, presetOnly };
+  }, [presetRelays, userRelays]);
 
   // Function to normalize relay URL by adding wss:// if no protocol is present
   const normalizeRelayUrl = (url: string): string => {
@@ -122,10 +154,45 @@ export function RelaySelector(props: RelaySelectorProps) {
                 </div>
               )}
             </CommandEmpty>
-            <CommandGroup>
-              {presetRelays
-                .filter((option) => 
-                  !inputValue || 
+            {/* User relays group (from NIP-65) */}
+            {combinedRelays.userOnly.length > 0 && (
+              <CommandGroup heading="Your relays">
+                {combinedRelays.userOnly
+                  .filter((option) =>
+                    !inputValue ||
+                    option.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+                    option.url.toLowerCase().includes(inputValue.toLowerCase())
+                  )
+                  .map((option) => (
+                    <CommandItem
+                      key={option.url}
+                      value={option.url}
+                      onSelect={(currentValue) => {
+                        setSelectedRelay(normalizeRelayUrl(currentValue));
+                        setOpen(false);
+                        setInputValue("");
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          selectedRelay === option.url ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{option.name}</span>
+                        <span className="text-xs text-muted-foreground">{option.url}</span>
+                      </div>
+                    </CommandItem>
+                  ))}
+              </CommandGroup>
+            )}
+
+            {/* Preset relays group */}
+            <CommandGroup heading="Preset relays">
+              {combinedRelays.presetOnly
+                .filter((option) =>
+                  !inputValue ||
                   option.name.toLowerCase().includes(inputValue.toLowerCase()) ||
                   option.url.toLowerCase().includes(inputValue.toLowerCase())
                 )
@@ -151,6 +218,7 @@ export function RelaySelector(props: RelaySelectorProps) {
                     </div>
                   </CommandItem>
                 ))}
+
               {inputValue && isValidRelayInput(inputValue) && (
                 <CommandItem
                   onSelect={() => handleAddCustomRelay(inputValue)}
