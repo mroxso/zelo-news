@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
-import { BlogLayout } from "./components/BlogLayout";
+import { Layout } from "./components/Layout";
 import CreatePostPage from "./pages/CreatePostPage";
 import EditPostPage from "./pages/EditPostPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
@@ -16,7 +16,7 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <BlogLayout>
+      <Layout>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/create" element={<CreatePostPage />} />
@@ -33,7 +33,7 @@ export function AppRouter() {
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BlogLayout>
+      </Layout>
     </BrowserRouter>
   );
 }
