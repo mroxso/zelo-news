@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui/dropdown-menu
 import { MessageSquare, ChevronDown, ChevronRight, MoreHorizontal } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { genUserName } from '@/lib/genUserName';
+import { ZapButton } from '@/components/ZapButton';
 
 interface CommentProps {
   root: NostrEvent | URL;
@@ -83,6 +84,13 @@ export function Comment({ root, comment, depth = 0, maxDepth = 3, limit }: Comme
                   <MessageSquare className="h-3 w-3 mr-1" />
                   Reply
                 </Button>
+
+                {/* Zap Button */}
+                <ZapButton
+                  target={comment as NostrEvent}
+                  buttonVariant="ghost"
+                  className="h-8 px-2 text-xs"
+                />
                 
                 {hasReplies && (
                   <Collapsible open={showReplies} onOpenChange={setShowReplies}>
