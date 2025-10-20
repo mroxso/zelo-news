@@ -26,8 +26,8 @@ export function BookmarksPage() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Bookmark className="h-8 w-8" />
-            <h1 className="text-4xl font-bold">Bookmarks</h1>
+            <Bookmark className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl sm:text-4xl font-bold">Bookmarks</h1>
           </div>
           <p className="text-muted-foreground">
             Articles you've saved for later reading
