@@ -45,16 +45,19 @@ export function useBlogPosts() {
       // Filter and validate events
       const validPosts = events.filter(validateBlogPost);
 
-      // Sort by published_at (newest first), fallback to created_at
-      return validPosts.sort((a, b) => {
-        const aPublished = a.tags.find(([name]) => name === 'published_at')?.[1];
-        const bPublished = b.tags.find(([name]) => name === 'published_at')?.[1];
-        
-        const aTime = aPublished ? parseInt(aPublished) : a.created_at;
-        const bTime = bPublished ? parseInt(bPublished) : b.created_at;
-        
-        return bTime - aTime;
-      });
+      // Helper: safely parse published_at from tags
+      const getPublishedAt = (event: NostrEvent): number | undefined => {
+        const value = event.tags.find(([name]) => name === 'published_at')?.[1];
+        if (!value) return undefined;
+        const n = Number.parseInt(value, 10);
+        return Number.isFinite(n) && n > 0 ? n : undefined;
+      };
+
+      // Only include posts that have a valid published_at tag
+      const withPublishedAt = validPosts.filter((e) => getPublishedAt(e) !== undefined);
+
+      // Sort strictly by published_at (newest first)
+      return withPublishedAt.sort((a, b) => (getPublishedAt(b)! - getPublishedAt(a)!));
     },
   });
 }
