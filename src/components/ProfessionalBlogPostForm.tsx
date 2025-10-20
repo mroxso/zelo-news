@@ -253,7 +253,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24 sm:pb-0">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -451,7 +451,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
 
       {/* Mobile Action Buttons */}
       {isMobile && (
-        <Card className="sticky bottom-4 shadow-lg">
+        <Card className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] shadow-lg">
           <CardContent className="py-4">
             <div className="flex gap-2">
               <Button

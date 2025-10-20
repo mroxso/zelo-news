@@ -2,14 +2,11 @@ import { Link } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Button } from '@/components/ui/button';
-import { PenSquare, Menu, Bookmark, Users } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { PenSquare, Bookmark, Users } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { useState } from 'react';
 
 export function Header() {
   const { user } = useCurrentUser();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -53,56 +50,10 @@ export function Header() {
           <LoginArea className="max-w-60" />
         </div>
 
-        {/* Mobile Menu */}
-        <div className="sm:hidden">
-          <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[280px]">
-              <div className="flex flex-col gap-6 mt-8">
-                {/* Theme Toggle in Menu */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Theme</span>
-                  <ThemeToggle />
-                </div>
-
-                {/* Login Area in Menu */}
-                <div className="flex flex-col gap-2">
-                  <span className="text-sm font-medium">Account</span>
-                  <LoginArea className="w-full" />
-                </div>
-
-                {/* Navigation for logged in users */}
-                {user && (
-                  <>
-                    <div className="border-t pt-4 space-y-2">
-                      <Button variant="outline" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
-                        <Link to="/following">
-                          <Users className="h-4 w-4 mr-2" />
-                          Following
-                        </Link>
-                      </Button>
-                      <Button variant="outline" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
-                        <Link to="/bookmarks">
-                          <Bookmark className="h-4 w-4 mr-2" />
-                          Bookmarks
-                        </Link>
-                      </Button>
-                      <Button variant="default" className="w-full" asChild onClick={() => setIsMenuOpen(false)}>
-                        <Link to="/create">
-                          <PenSquare className="h-4 w-4 mr-2" />
-                          New Post
-                        </Link>
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </SheetContent>
-          </Sheet>
+        {/* Mobile: show LoginArea in header (bottom nav is still used for nav) */}
+        <div className="sm:hidden flex items-center">
+          <ThemeToggle />
+          <LoginArea />
         </div>
       </div>
     </header>
