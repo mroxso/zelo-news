@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TrendingUp, Hash } from 'lucide-react';
-import { useBlogPosts } from '@/hooks/useBlogPosts';
+import { useLongFormContentNotes } from '@/hooks/useLongFormContentNotes';
 
 interface TagCount {
   tag: string;
@@ -12,7 +12,7 @@ interface TagCount {
 
 export function TrendingTags() {
   const navigate = useNavigate();
-  const { data: posts, isLoading } = useBlogPosts();
+  const { data: posts, isLoading } = useLongFormContentNotes();
 
   // Loading state
   if (isLoading) {

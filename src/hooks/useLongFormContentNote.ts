@@ -2,14 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import type { NostrEvent } from '@nostrify/nostrify';
 
-interface BlogPost extends NostrEvent {
+interface LongFormContentNote extends NostrEvent {
   kind: 30023;
 }
 
 /**
- * Validates that a Nostr event is a valid NIP-23 blog post
+ * Validates that a Nostr event is a valid NIP-23 long form content note
  */
-function validateBlogPost(event: NostrEvent): event is BlogPost {
+function validateLongFormContentNote(event: NostrEvent): event is LongFormContentNote {
   if (event.kind !== 30023) return false;
 
   const d = event.tags.find(([name]) => name === 'd')?.[1];
@@ -21,13 +21,13 @@ function validateBlogPost(event: NostrEvent): event is BlogPost {
 }
 
 /**
- * Hook to fetch a single blog post by author pubkey and d-tag identifier
+ * Hook to fetch a single long form content note by author pubkey and d-tag identifier
  */
-export function useBlogPost(pubkey: string, identifier: string) {
+export function useLongFormContentNote(pubkey: string, identifier: string) {
   const { nostr } = useNostr();
 
   return useQuery({
-    queryKey: ['blog-post', pubkey, identifier],
+    queryKey: ['long-form-content-note', pubkey, identifier],
     queryFn: async (c) => {
       const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]);
       
@@ -46,7 +46,7 @@ export function useBlogPost(pubkey: string, identifier: string) {
       const event = events[0];
       
       // Validate the event
-      if (!validateBlogPost(event)) return null;
+      if (!validateLongFormContentNote(event)) return null;
 
       return event;
     },

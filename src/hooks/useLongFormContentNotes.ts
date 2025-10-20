@@ -9,7 +9,7 @@ interface BlogPost extends NostrEvent {
 /**
  * Validates that a Nostr event is a valid NIP-23 blog post
  */
-function validateBlogPost(event: NostrEvent): event is BlogPost {
+function validateLongFormContentNote(event: NostrEvent): event is BlogPost {
   // Must be kind 30023
   if (event.kind !== 30023) return false;
 
@@ -24,13 +24,13 @@ function validateBlogPost(event: NostrEvent): event is BlogPost {
 }
 
 /**
- * Hook to fetch all blog posts from all authors
+ * Hook to fetch all long form content notes from all authors
  */
-export function useBlogPosts() {
+export function useLongFormContentNotes() {
   const { nostr } = useNostr();
 
   return useQuery({
-    queryKey: ['blog-posts'],
+    queryKey: ['long-form-content-notes'],
     queryFn: async (c) => {
       const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]);
       
@@ -43,7 +43,7 @@ export function useBlogPosts() {
       );
 
       // Filter and validate events
-      const validPosts = events.filter(validateBlogPost);
+      const validPosts = events.filter(validateLongFormContentNote);
 
       // Helper: safely parse published_at from tags
       const getPublishedAt = (event: NostrEvent): number | undefined => {

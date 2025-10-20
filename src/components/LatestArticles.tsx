@@ -3,7 +3,7 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Newspaper, ChevronDown } from 'lucide-react';
-import { useBlogPosts } from '@/hooks/useBlogPosts';
+import { useLongFormContentNotes } from '@/hooks/useLongFormContentNotes';
 import { ArticlePreview } from '@/components/ArticlePreview';
 
 const INITIAL_POSTS_COUNT = 3;
@@ -11,7 +11,7 @@ const LOAD_MORE_COUNT = 6;
 
 export function LatestArticles() {
   const [visibleCount, setVisibleCount] = useState(INITIAL_POSTS_COUNT);
-  const { data: posts, isLoading } = useBlogPosts();
+  const { data: posts, isLoading } = useLongFormContentNotes();
   
   // Loading state
   if (isLoading) {

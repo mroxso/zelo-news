@@ -4,7 +4,7 @@ import { nip19 } from 'nostr-tools';
 import { SerializedEditorState } from 'lexical';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePublishBlogPost } from '@/hooks/usePublishBlogPost';
-import { useBlogPost } from '@/hooks/useBlogPost';
+import { useLongFormContentNote } from '@/hooks/useLongFormContentNote';
 import { useUploadFile } from '@/hooks/useUploadFile';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { Button } from '@/components/ui/button';
@@ -50,7 +50,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
 
   // Load existing post if editing (using the current user's pubkey)
-  const { data: existingPost, isLoading: isLoadingPost } = useBlogPost(
+  const { data: existingPost, isLoading: isLoadingPost } = useLongFormContentNote(
     user?.pubkey || '',
     editIdentifier || ''
   );

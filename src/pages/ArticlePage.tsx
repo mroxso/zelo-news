@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
 import { useSeoMeta } from '@unhead/react';
-import { useBlogPost } from '@/hooks/useBlogPost';
+import { useLongFormContentNote } from '@/hooks/useLongFormContentNote';
 import { useAuthor } from '@/hooks/useAuthor';
 import { ArticleView } from '@/components/ArticleView';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,7 +30,7 @@ export default function ArticlePage() {
     console.error('Failed to decode naddr:', error);
   }
 
-  const { data: post, isLoading } = useBlogPost(pubkey, identifier);
+  const { data: post, isLoading } = useLongFormContentNote(pubkey, identifier);
   const author = useAuthor(pubkey);
 
   // Extract article metadata
