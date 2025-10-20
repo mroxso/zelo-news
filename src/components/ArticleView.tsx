@@ -174,9 +174,13 @@ export function ArticleView({ post }: ArticleViewProps) {
           {hashtags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {hashtags.map((tag) => (
-                <Badge key={tag} variant="secondary">
-                  #{tag}
-                </Badge>
+                <Link
+                  key={tag}
+                  to={`/search?q=%23${encodeURIComponent(tag)}`}
+                  className="hover:opacity-80"
+                >
+                  <Badge variant="secondary">#{tag}</Badge>
+                </Link>
               ))}
             </div>
           )}
