@@ -53,7 +53,7 @@ export function Header() {
         {/* Mobile: show LoginArea in header (bottom nav is still used for nav) */}
         <div className="sm:hidden flex items-center">
           <ThemeToggle />
-          <LoginArea />
+          <LoginArea className='pl-2' />
         </div>
       </div>
     </header>
