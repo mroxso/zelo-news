@@ -76,8 +76,19 @@ export function useBookmarkedArticles() {
       // Filter and validate events
       const validArticles = events.filter(validateBlogPost);
 
-      // Sort by created_at descending (newest first)
-      return validArticles.sort((a, b) => b.created_at - a.created_at);
+      // Helper: safely parse published_at from tags
+      const getPublishedAt = (event: NostrEvent): number | undefined => {
+        const value = event.tags.find(([name]) => name === 'published_at')?.[1];
+        if (!value) return undefined;
+        const n = Number.parseInt(value, 10);
+        return Number.isFinite(n) && n > 0 ? n : undefined;
+      };
+
+      // Only include posts that have a valid published_at tag
+      const withPublishedAt = validArticles.filter((e) => getPublishedAt(e) !== undefined);
+
+      // Sort strictly by published_at (newest first)
+      return withPublishedAt.sort((a, b) => (getPublishedAt(b)! - getPublishedAt(a)!));
     },
     enabled: !isLoadingBookmarks && bookmarks.length > 0,
     staleTime: 60000, // Consider data fresh for 1 minute
