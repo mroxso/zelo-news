@@ -3,6 +3,7 @@ import { Header } from './Header';
 import { BottomNav } from './BottomNav';
 import packageJson from '../../package.json';
 
+
 interface LayoutProps {
   children: ReactNode;
 }
