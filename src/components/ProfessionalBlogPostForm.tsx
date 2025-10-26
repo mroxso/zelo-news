@@ -68,6 +68,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
 
   // Load existing post data when editing
   useEffect(() => {
+    // In edit mode with existing post data
     if (existingPost && editIdentifier) {
       const d = existingPost.tags.find(([name]) => name === 'd')?.[1] || '';
       const title = existingPost.tags.find(([name]) => name === 'title')?.[1] || '';
@@ -87,8 +88,6 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
       });
 
       // Convert markdown content to editor state
-      // We'll use a simple approach - the editor will handle the markdown
-      // For now, we'll just set it as the initial state
       if (existingPost.content) {
         try {
           // Create a simple editor state with the markdown content as text
@@ -127,12 +126,13 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
           console.error('Failed to parse existing content:', error);
         }
       }
-      setIsEditorReady(true);
-    } else if (!editIdentifier) {
-      // In create mode, editor is ready immediately
-      setIsEditorReady(true);
-    } else if (editIdentifier && !isLoadingPost && !existingPost) {
-      // Post not found, but we should still allow rendering
+    }
+
+    // Mark editor as ready when:
+    // 1. Not in edit mode (create mode)
+    // 2. In edit mode and post has loaded
+    // 3. In edit mode but post not found (after loading completes)
+    if (!editIdentifier || (editIdentifier && !isLoadingPost)) {
       setIsEditorReady(true);
     }
   }, [existingPost, editIdentifier, isLoadingPost]);
