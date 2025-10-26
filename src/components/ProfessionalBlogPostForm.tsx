@@ -129,10 +129,9 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
     }
 
     // Mark editor as ready when:
-    // 1. Not in edit mode (create mode)
-    // 2. In edit mode and post has loaded
-    // 3. In edit mode but post not found (after loading completes)
-    if (!editIdentifier || (editIdentifier && !isLoadingPost)) {
+    // 1. Not in edit mode (create mode) - ready immediately
+    // 2. In edit mode and loading has completed - ready after data loads
+    if (!editIdentifier || !isLoadingPost) {
       setIsEditorReady(true);
     }
   }, [existingPost, editIdentifier, isLoadingPost]);
