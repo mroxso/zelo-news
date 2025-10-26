@@ -64,6 +64,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
     hashtags: '',
   });
   const [showMetadata, setShowMetadata] = useState(true);
+  const [isEditorReady, setIsEditorReady] = useState(false);
 
   // Load existing post data when editing
   useEffect(() => {
@@ -126,8 +127,15 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
           console.error('Failed to parse existing content:', error);
         }
       }
+      setIsEditorReady(true);
+    } else if (!editIdentifier) {
+      // In create mode, editor is ready immediately
+      setIsEditorReady(true);
+    } else if (editIdentifier && !isLoadingPost && !existingPost) {
+      // Post not found, but we should still allow rendering
+      setIsEditorReady(true);
     }
-  }, [existingPost, editIdentifier]);
+  }, [existingPost, editIdentifier, isLoadingPost]);
 
   const handleMetadataChange = (field: keyof typeof metadata, value: string) => {
     setMetadata(prev => ({ ...prev, [field]: value }));
@@ -437,12 +445,19 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
           <CardTitle className="text-lg">Content</CardTitle>
         </CardHeader>
         <CardContent>
-          <div >
-            <Editor
-              editorSerializedState={editorState}
-              onSerializedChange={(value) => setEditorState(value)}
-            />
-          </div>
+          {isEditorReady ? (
+            <div >
+              <Editor
+                key={editIdentifier ? `edit-${editIdentifier}` : 'create'}
+                editorSerializedState={editorState}
+                onSerializedChange={(value) => setEditorState(value)}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          )}
           <p className="text-xs text-muted-foreground mt-4">
             Write your article using the rich text editor. Markdown formatting is supported.
           </p>
