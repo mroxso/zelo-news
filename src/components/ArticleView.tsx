@@ -222,10 +222,7 @@ export function ArticleView({ post }: ArticleViewProps) {
             <div className="text-sm text-muted-foreground mb-2">Zap revenue splits</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {zapSplits.map((s, i) => (
-                <Link key={i} to={`/${nip19.npubEncode(s.pubkey)}`} className="flex items-center justify-between rounded-md border p-3 hover:bg-accent">
-                  <div className="truncate mr-4">{genUserName(s.pubkey)}</div>
-                  <Badge variant="secondary">{s.weight}%</Badge>
-                </Link>
+                <ZapSplitEntry key={`${s.pubkey}-${i}`} pubkey={s.pubkey} weight={s.weight} />
               ))}
             </div>
           </div>
@@ -318,5 +315,24 @@ export function ArticleView({ post }: ArticleViewProps) {
         <CommentsSection root={post} />
       </article>
     </div>
+  );
+}
+
+function ZapSplitEntry({ pubkey, weight }: { pubkey: string; weight: number }) {
+  const author = useAuthor(pubkey);
+  const metadata = author.data?.metadata;
+  const displayName = metadata?.display_name || metadata?.name || genUserName(pubkey);
+
+  return (
+    <Link to={`/${nip19.npubEncode(pubkey)}`} className="flex items-center justify-between rounded-md border p-3 hover:bg-accent">
+      <div className="flex items-center gap-3 min-w-0">
+        <Avatar className="h-8 w-8">
+          <AvatarImage src={metadata?.picture} alt={displayName} />
+          <AvatarFallback>{displayName[0]?.toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className="truncate">{displayName}</div>
+      </div>
+      <Badge variant="secondary">{weight}%</Badge>
+    </Link>
   );
 }
