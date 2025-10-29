@@ -31,12 +31,27 @@ export function useZaps(
   const { sendPayment, getActiveConnection } = useNWC();
   const [isZapping, setIsZapping] = useState(false);
   const [invoice, setInvoice] = useState<string | null>(null);
+  // Split zap support
+  type SplitInvoice = {
+    recipient: string; // hex pubkey
+    weight: number; // 1..100
+    relays: string[];
+    amount: number; // sats
+    zapEndpoint?: string;
+    zapRequest?: unknown;
+    invoice?: string;
+    isPaying?: boolean;
+    paid?: boolean;
+    error?: string;
+  };
+  const [splitInvoices, setSplitInvoices] = useState<SplitInvoice[]>([]);
 
   // Cleanup state when component unmounts
   useEffect(() => {
     return () => {
       setIsZapping(false);
       setInvoice(null);
+      setSplitInvoices([]);
     };
   }, []);
 
@@ -335,6 +350,192 @@ export function useZaps(
     }
   };
 
+  // Detect zap splits on the target event
+  const splitTags = useMemo(() => {
+    if (!actualTarget?.tags) return [] as string[][];
+    return actualTarget.tags.filter((t) => t[0] === 'zap');
+  }, [actualTarget]);
+  const hasSplits = splitTags.length > 1; // only treat as split flow when >1 recipients
+
+  // Helper: resolve zap endpoint for a recipient pubkey by fetching their kind 0
+  const resolveZapEndpoint = useCallback(async (pubkey: string, signal: AbortSignal): Promise<string | null> => {
+    try {
+      const events = await nostr.query([
+        { kinds: [0], authors: [pubkey], limit: 1 },
+      ], { signal });
+      const profile = events?.[0];
+      if (!profile) return null;
+      const endpoint = await nip57.getZapEndpoint(profile as unknown as Event);
+      return endpoint ?? null;
+    } catch {
+      // ignore network errors
+      return null;
+    }
+  }, [nostr]);
+
+  // Prepare split zap invoices (does not auto-pay). Only used when hasSplits === true
+  const prepareSplitZaps = useCallback(async (amount: number, comment: string) => {
+    if (!user) {
+      toast({ title: 'Login required', description: 'You must be logged in to send a zap.', variant: 'destructive' });
+      return;
+    }
+    if (!actualTarget) {
+      toast({ title: 'Event not found', description: 'Could not find the event to zap.', variant: 'destructive' });
+      return;
+    }
+
+    // Parse recipients
+    const recipients = splitTags.map((t) => {
+      // t: ["zap", <hexpub>, "weight", "<n>", "relays", <relay1>...]
+      const recipient = t[1] || '';
+      const weightIdx = t.findIndex((x) => x === 'weight');
+      const weight = weightIdx >= 0 ? Math.max(0, Math.min(100, parseInt(t[weightIdx + 1] || '0', 10) || 0)) : 0;
+      const relaysIdx = t.findIndex((x) => x === 'relays');
+      const relays = relaysIdx >= 0 ? t.slice(relaysIdx + 1) : [];
+      return { recipient, weight, relays };
+    }).filter(r => r.recipient);
+
+    const totalWeight = recipients.reduce((acc, r) => acc + r.weight, 0);
+    if (recipients.length <= 1 || totalWeight <= 0) {
+      // Fallback to single zap flow
+      await zap(amount, comment);
+      return;
+    }
+
+    // Compute per-recipient sats, distribute remainder to the largest weight
+    const sats = Math.max(1, Math.trunc(amount));
+    const computed: SplitInvoice[] = recipients.map(r => ({ ...r, amount: 0, relays: r.relays, weight: r.weight } as SplitInvoice));
+    let assigned = 0;
+    let maxIdx = 0;
+    let maxWeight = -1;
+    computed.forEach((r, i) => {
+      const share = Math.floor((sats * r.weight) / totalWeight);
+      r.amount = share;
+      assigned += share;
+      if (r.weight > maxWeight) { maxWeight = r.weight; maxIdx = i; }
+    });
+    const remainder = sats - assigned;
+    if (remainder > 0) {
+      computed[maxIdx].amount += remainder;
+    }
+
+    setIsZapping(true);
+    setSplitInvoices([]);
+
+    const signal = AbortSignal.timeout(10000);
+    try {
+      // Prepare zap requests and fetch invoices for each recipient in parallel
+      const results = await Promise.all(computed.map(async (item) => {
+        const endpoint = await resolveZapEndpoint(item.recipient, signal);
+        if (!endpoint) {
+          return { ...item, error: 'Zap endpoint not found' } as SplitInvoice;
+        }
+
+        // Build zap request; use same event reference logic as single flow
+        const eventRef = (actualTarget.kind >= 30000 && actualTarget.kind < 40000)
+          ? actualTarget
+          : actualTarget.id;
+
+        const zapAmountMsat = item.amount * 1000;
+        const zr = nip57.makeZapRequest({
+          profile: item.recipient,
+          event: eventRef,
+          amount: zapAmountMsat,
+          relays: [config.relayUrl],
+          comment,
+        });
+
+        // Ensure original split tags are included so servers that support server-side split can verify context
+        try {
+          if (Array.isArray(actualTarget.tags)) {
+            const splitTagsLocal = actualTarget.tags.filter((t) => t[0] === 'zap');
+            const zrobj = zr as unknown as { tags?: string[][] };
+            zrobj.tags = Array.isArray(zrobj.tags) ? zrobj.tags : [];
+            zrobj.tags.push(...splitTagsLocal);
+          }
+        } catch {
+          // ignore tag merge errors
+        }
+
+        if (!user.signer) {
+          return { ...item, error: 'No signer available' } as SplitInvoice;
+        }
+        const signed = await user.signer.signEvent(zr);
+
+        try {
+          const res = await fetch(`${endpoint}?amount=${zapAmountMsat}&nostr=${encodeURI(JSON.stringify(signed))}`);
+          const json = await res.json();
+          if (!res.ok) {
+            const reason = json?.reason || 'Unknown error';
+            return { ...item, zapEndpoint: endpoint, zapRequest: signed, error: `HTTP ${res.status}: ${reason}` } as SplitInvoice;
+          }
+          const pr = json?.pr as string | undefined;
+          if (!pr) {
+            return { ...item, zapEndpoint: endpoint, zapRequest: signed, error: 'Lightning service did not return a valid invoice' } as SplitInvoice;
+          }
+          return { ...item, zapEndpoint: endpoint, zapRequest: signed, invoice: pr } as SplitInvoice;
+        } catch (e) {
+          return { ...item, zapEndpoint: endpoint, zapRequest: signed, error: (e as Error).message } as SplitInvoice;
+        }
+      }));
+
+      setSplitInvoices(results);
+    } finally {
+      setIsZapping(false);
+    }
+  }, [user, actualTarget, splitTags, config.relayUrl, resolveZapEndpoint, toast, zap]);
+
+  const paySplitInvoice = useCallback(async (idx: number) => {
+    const item = splitInvoices[idx];
+    if (!item || !item.invoice) {
+      toast({ title: 'Payment error', description: 'No invoice available for this split', variant: 'destructive' });
+      return;
+    }
+    // Get current active connection fresh
+    const currentNWCConnection = getActiveConnection();
+    const inv = item.invoice;
+    // Optimistic UI: set isPaying
+    setSplitInvoices((prev) => prev.map((it, i) => i === idx ? { ...it, isPaying: true, error: undefined } : it));
+    try {
+      if (currentNWCConnection && currentNWCConnection.connectionString && currentNWCConnection.isConnected) {
+        try {
+          await sendPayment(currentNWCConnection, inv);
+          setSplitInvoices((prev) => prev.map((it, i) => i === idx ? { ...it, isPaying: false, paid: true } : it));
+          toast({ title: 'Zap successful!', description: `You sent ${item.amount} sats via NWC.` });
+          queryClient.invalidateQueries({ queryKey: ['zaps'] });
+          return;
+        } catch (nwcError) {
+          const msg = nwcError instanceof Error ? nwcError.message : 'Unknown NWC error';
+          toast({ title: 'NWC payment failed', description: msg, variant: 'destructive' });
+        }
+      }
+
+      if (webln) {
+        try {
+          await webln.sendPayment(inv);
+          setSplitInvoices((prev) => prev.map((it, i) => i === idx ? { ...it, isPaying: false, paid: true } : it));
+          toast({ title: 'Zap successful!', description: `You sent ${item.amount} sats.` });
+          queryClient.invalidateQueries({ queryKey: ['zaps'] });
+          return;
+        } catch (weblnError) {
+          const msg = weblnError instanceof Error ? weblnError.message : 'Unknown WebLN error';
+          setSplitInvoices((prev) => prev.map((it, i) => i === idx ? { ...it, isPaying: false, error: msg } : it));
+          toast({ title: 'WebLN payment failed', description: msg, variant: 'destructive' });
+          return;
+        }
+      }
+
+      // Fallback: no automatic method; just show error encouraging copy/open
+      setSplitInvoices((prev) => prev.map((it, i) => i === idx ? { ...it, isPaying: false, error: 'No wallet connected. Use Copy or Open.' } : it));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Payment failed';
+      setSplitInvoices((prev) => prev.map((it, i) => i === idx ? { ...it, isPaying: false, error: msg } : it));
+      toast({ title: 'Payment failed', description: msg, variant: 'destructive' });
+    }
+  }, [splitInvoices, toast, queryClient, webln, getActiveConnection, sendPayment]);
+
+  const clearSplitInvoices = useCallback(() => setSplitInvoices([]), []);
+
   const resetInvoice = useCallback(() => {
     setInvoice(null);
   }, []);
@@ -345,6 +546,11 @@ export function useZaps(
     totalSats,
     ...query,
     zap,
+    hasSplits,
+    prepareSplitZaps,
+    splitInvoices,
+    paySplitInvoice,
+    clearSplitInvoices,
     isZapping,
     invoice,
     setInvoice,
