@@ -209,6 +209,21 @@ export function useZaps(
         comment
       });
 
+      // If target event contains zap split tags, include them in the zap request,
+      // so compatible zap servers can honor the split distribution.
+      try {
+        if (Array.isArray(actualTarget.tags)) {
+          const splitTags = actualTarget.tags.filter((t) => t[0] === 'zap');
+          if (splitTags.length > 0) {
+            const zr = zapRequest as unknown as { tags?: string[][] };
+            zr.tags = Array.isArray(zr.tags) ? zr.tags : [];
+            zr.tags.push(...splitTags);
+          }
+        }
+      } catch (e) {
+        console.debug('Failed to include zap split tags in zap request', e);
+      }
+
       // Sign the zap request (but don't publish to relays - only send to LNURL endpoint)
       if (!user.signer) {
         throw new Error('No signer available');

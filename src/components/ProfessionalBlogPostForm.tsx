@@ -14,8 +14,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Loader2, Upload, Image as ImageIcon, FileText, Hash, Calendar } from 'lucide-react';
+import { AlertCircle, Loader2, Upload, Image as ImageIcon, FileText, Hash, Calendar, Percent } from 'lucide-react';
 import { Editor } from '@/components/blocks/editor-00/editor';
+import { Slider } from '@/components/ui/slider';
+import { HOUSE_PUBKEY_HEX, HOUSE_SPLIT_ENABLED } from '@/config';
 
 interface ProfessionalBlogPostFormProps {
   /** Existing post identifier for editing (optional) */
@@ -43,6 +45,9 @@ const initialEditorState = {
 } as unknown as SerializedEditorState;
 
 export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPostFormProps) {
+  // Static destination pubkey (hex) for platform split (hidden and not editable)
+  const HOUSE_HEX = HOUSE_PUBKEY_HEX;
+
   const { user } = useCurrentUser();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -64,6 +69,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
     hashtags: '',
   });
   const [showMetadata, setShowMetadata] = useState(true);
+  const [splitPercent, setSplitPercent] = useState<number>(30);
 
   // Load existing post data when editing
   useEffect(() => {
@@ -125,6 +131,24 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
         } catch (error) {
           console.error('Failed to parse existing content:', error);
         }
+      }
+
+      // Prefill slider from existing zap split for the configured house pubkey (if present)
+      try {
+        const zapTags = existingPost.tags.filter(([name]) => name === 'zap');
+        const target = zapTags.find((t) => t[1] === HOUSE_HEX);
+        if (target) {
+          let w = 30;
+          const idx = target.findIndex((x) => x === 'weight');
+          if (idx >= 0 && target[idx + 1]) w = parseInt(target[idx + 1] as string) || 30;
+          else if (target[2]) {
+            const n = parseInt(target[2] as string);
+            if (!Number.isNaN(n)) w = n;
+          }
+          setSplitPercent(Math.max(0, Math.min(100, w)));
+        }
+      } catch (e) {
+        console.debug('No zap split to prefill or parse error', e);
       }
     }
   }, [existingPost, editIdentifier]);
@@ -196,6 +220,37 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
         ? parseInt(existingPost.tags.find(([name]) => name === 'published_at')?.[1] || '0')
         : Math.floor(Date.now() / 1000);
 
+      // Preserve any existing non-house zap splits when editing
+      let preservedSplits: Array<{ pubkey: string; weight: number; relays?: string[] }> = [];
+      try {
+        if (existingPost) {
+          const zapTags = existingPost.tags.filter(([n]) => n === 'zap');
+          preservedSplits = zapTags
+            .filter((t) => t[1] !== HOUSE_HEX)
+            .map((t) => {
+              const pubkey = t[1] ?? '';
+              let weight = 0;
+              const idx = t.findIndex((x) => x === 'weight');
+              if (idx >= 0 && t[idx + 1]) weight = parseInt(t[idx + 1] as string) || 0;
+              else if (t[2]) {
+                const n = parseInt(t[2] as string);
+                if (!Number.isNaN(n)) weight = n;
+              }
+              // Parse optional relays
+              const relaysIdx = t.findIndex((x) => x === 'relays');
+              const relays = relaysIdx >= 0 ? t.slice(relaysIdx + 1) : undefined;
+              return { pubkey, weight, relays };
+            })
+            .filter((s) => s.pubkey && s.weight > 0);
+        }
+      } catch (e) {
+        console.debug('Failed to preserve existing zap splits', e);
+      }
+
+      const finalSplits = HOUSE_SPLIT_ENABLED
+        ? [{ pubkey: HOUSE_HEX, weight: Math.trunc(splitPercent) }, ...preservedSplits]
+        : preservedSplits;
+
       const event = await publishPost({
         identifier: metadata.identifier,
         title: metadata.title,
@@ -206,6 +261,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
           ? metadata.hashtags.split(',').map(t => t.trim()).filter(Boolean)
           : undefined,
         publishedAt: publishedAt || undefined,
+        splits: finalSplits.length > 0 ? finalSplits : undefined,
       });
 
       // Navigate to the post
@@ -424,6 +480,27 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
                   <span>
                     Originally published: {new Date(parseInt(existingPost.tags.find(([name]) => name === 'published_at')?.[1] || '0') * 1000).toLocaleDateString()}
                   </span>
+                </div>
+              </div>
+            )}
+
+            {/* Zap revenue split (fixed recipient, adjustable percentage) */}
+            {HOUSE_SPLIT_ENABLED && (
+              <div className="pt-4 border-t">
+                <Label className="flex items-center gap-2">
+                  Revenue share <Percent className="h-4 w-4" />
+                </Label>
+                <div className="mt-2">
+                  <Slider
+                    value={[splitPercent]}
+                    min={0}
+                    max={100}
+                    step={1}
+                    onValueChange={(v) => setSplitPercent(v[0] ?? 0)}
+                  />
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    {splitPercent}% goes to the platform. {100 - splitPercent}% goes to you.
+                  </div>
                 </div>
               </div>
             )}

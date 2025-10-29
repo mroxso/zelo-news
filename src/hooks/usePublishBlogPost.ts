@@ -11,6 +11,12 @@ interface BlogPostData {
   content: string;
   hashtags?: string[];
   publishedAt?: number;
+  /** Optional zap revenue splits. Weights are integers (percent). */
+  splits?: Array<{
+    pubkey: string; // hex or npub1
+    weight: number; // 1..100
+    relays?: string[];
+  }>;
 }
 
 /**
@@ -49,6 +55,32 @@ export function usePublishBlogPost() {
         data.hashtags.forEach(tag => {
           tags.push(['t', tag]);
         });
+      }
+
+      // Zap splits (NIP-57 community convention): add one `zap` tag per recipient.
+      // Tag shape we emit: ["zap", <hex-pubkey>, "weight", "<n>", "relays", <relay1>, <relay2> ...]
+      if (data.splits && data.splits.length > 0) {
+        for (const split of data.splits) {
+          // Normalize pubkey: accept npub or hex; if npub, decode to hex
+          let hexPub = split.pubkey;
+          try {
+            if (hexPub.startsWith('npub1')) {
+              const { nip19 } = await import('nostr-tools');
+              const decoded = nip19.decode(hexPub);
+              if (decoded.type === 'npub') {
+                hexPub = decoded.data as string;
+              }
+            }
+          } catch {
+            // keep as-is; signer/relays may ignore invalid entries
+          }
+
+          const parts: string[] = ['zap', hexPub, 'weight', String(Math.max(0, Math.min(100, Math.trunc(split.weight || 0))))];
+          if (split.relays && split.relays.length > 0) {
+            parts.push('relays', ...split.relays);
+          }
+          tags.push(parts);
+        }
       }
 
       // Add client tag

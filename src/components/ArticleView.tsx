@@ -58,6 +58,21 @@ export function ArticleView({ post }: ArticleViewProps) {
     .filter(([name]) => name === 't')
     .map(([, value]) => value);
 
+  // Parse zap splits from tags (community convention under NIP-57)
+  const zapSplits = post.tags
+    .filter(([n]) => n === 'zap')
+    .map((t) => {
+      const pub = t[1] ?? '';
+      let weight = 0;
+      const idx = t.findIndex((x) => x === 'weight');
+      if (idx >= 0 && t[idx + 1]) weight = parseInt(t[idx + 1] as string) || 0;
+      else if (t[2]) {
+        const n = parseInt(t[2] as string); if (!Number.isNaN(n)) weight = n;
+      }
+      return { pubkey: pub, weight };
+    })
+    .filter((s) => s.pubkey && s.weight > 0);
+
   const date = publishedAt
     ? new Date(parseInt(publishedAt) * 1000)
     : new Date(post.created_at * 1000);
@@ -201,6 +216,20 @@ export function ArticleView({ post }: ArticleViewProps) {
         </div>
 
         <Separator className="my-8" />
+
+        {zapSplits.length > 0 && (
+          <div className="mb-8">
+            <div className="text-sm text-muted-foreground mb-2">Zap revenue splits</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {zapSplits.map((s, i) => (
+                <Link key={i} to={`/${nip19.npubEncode(s.pubkey)}`} className="flex items-center justify-between rounded-md border p-3 hover:bg-accent">
+                  <div className="truncate mr-4">{genUserName(s.pubkey)}</div>
+                  <Badge variant="secondary">{s.weight}%</Badge>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-wrap items-center gap-4 mb-12">
           <Button
