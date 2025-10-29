@@ -176,7 +176,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
       interface EditorNode {
         children?: Array<{ text?: string }>;
       }
-      
+
       const root = editorState.root as { children?: EditorNode[] };
       const content = (root.children || [])
         .map((child: EditorNode) => {
@@ -198,6 +198,11 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user) {
+      alert('You must be logged in to publish a post');
+      return;
+    }
+
     if (!metadata.identifier.trim()) {
       alert('Please provide a unique identifier for your post');
       return;
@@ -209,7 +214,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
     }
 
     const markdownContent = getMarkdownFromEditor();
-    
+
     if (!markdownContent.trim()) {
       alert('Please write some content for your post');
       return;
@@ -247,9 +252,25 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
         console.debug('Failed to preserve existing zap splits', e);
       }
 
-      const finalSplits = HOUSE_SPLIT_ENABLED
-        ? [{ pubkey: HOUSE_HEX, weight: Math.trunc(splitPercent) }, ...preservedSplits]
-        : preservedSplits;
+      // Build base splits: optional house + preserved non-house recipients
+      const houseWeight = HOUSE_SPLIT_ENABLED ? Math.trunc(splitPercent) : 0;
+      const baseSplits = [
+        ...(HOUSE_SPLIT_ENABLED ? [{ pubkey: HOUSE_HEX, weight: houseWeight }] : []),
+        ...preservedSplits,
+      ];
+
+      // Ensure the author receives the remaining percentage
+      const authorPubkey = user.pubkey;
+      const authorAlreadyIncluded = baseSplits.some((s) => s.pubkey === authorPubkey);
+      let finalSplits = baseSplits;
+
+      if (!authorAlreadyIncluded) {
+        const used = baseSplits.reduce((acc, s) => acc + (s.weight || 0), 0);
+        const remaining = Math.max(0, 100 - used);
+        if (remaining > 0) {
+          finalSplits = [...baseSplits, { pubkey: authorPubkey, weight: remaining }];
+        }
+      }
 
       const event = await publishPost({
         identifier: metadata.identifier,
