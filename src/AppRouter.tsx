@@ -6,6 +6,7 @@ import EditPostPage from "./pages/EditPostPage";
 import SearchResultsPage from "./pages/SearchResultsPage";
 import { BookmarksPage } from "./pages/BookmarksPage";
 import FollowingPage from "./pages/FollowingPage";
+import HighlightsPage from "./pages/HighlightsPage";
 import Nip05ProfilePage from "./pages/Nip05ProfilePage";
 import ArticleByDTagPage from "./pages/ArticleByDTagPage";
 import { NIP19Page } from "./pages/NIP19Page";
@@ -23,6 +24,7 @@ export function AppRouter() {
           <Route path="/edit/:identifier" element={<EditPostPage />} />
           <Route path="/search" element={<SearchResultsPage />} />
           <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/highlights" element={<HighlightsPage />} />
           <Route path="/following" element={<FollowingPage />} />
           {/* NIP-05 profile route (e.g., /p/alice@example.com) */}
           <Route path="/p/:nip05" element={<Nip05ProfilePage />} />
