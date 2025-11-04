@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Bookmark, PenSquare, User as UserIcon } from 'lucide-react';
+import { Home, Users, Bookmark, PenSquare, User as UserIcon, Highlighter } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { nip19 } from 'nostr-tools';
@@ -22,7 +22,7 @@ export function BottomNav() {
       aria-label="Bottom navigation"
     >
       <div className="container px-4 sm:px-6 lg:px-8">
-        <ul className="grid grid-cols-5 h-16 items-center">
+        <ul className="grid grid-cols-6 h-16 items-center">
           <li className="flex items-stretch">
             <Link
               to="/"
@@ -60,6 +60,19 @@ export function BottomNav() {
             >
               <Bookmark className="h-5 w-5" />
               <span className="sr-only">Bookmarks</span>
+            </Link>
+          </li>
+          <li className="flex items-stretch">
+            <Link
+              to="/highlights"
+              aria-label="Highlights"
+              className={
+                'flex-1 flex items-center justify-center gap-1 text-sm transition-colors ' +
+                (isActive('/highlights') ? 'text-foreground' : 'text-muted-foreground hover:text-foreground')
+              }
+            >
+              <Highlighter className="h-5 w-5" />
+              <span className="sr-only">Highlights</span>
             </Link>
           </li>
           <li className="flex items-stretch">

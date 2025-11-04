@@ -4,6 +4,7 @@ import { useSeoMeta } from '@unhead/react';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useAuthorBlogPosts } from '@/hooks/useAuthorBlogPosts';
 import { useUserBookmarkedArticles } from '@/hooks/useUserBookmarkedArticles';
+import { useUserHighlights } from '@/hooks/useHighlights';
 import { ProfileView } from '@/components/ProfileView';
 import { ProfileSkeleton } from '@/components/ProfileSkeleton';
 import NotFound from '@/pages/NotFound';
@@ -37,6 +38,7 @@ export default function ProfilePage() {
   const author = useAuthor(pubkey);
   const { data: posts, isLoading: postsLoading } = useAuthorBlogPosts(pubkey);
   const { data: bookmarkedArticles, isLoading: bookmarksLoading } = useUserBookmarkedArticles(pubkey);
+  const { data: highlights, isLoading: highlightsLoading } = useUserHighlights(pubkey);
 
   const metadata = author.data?.metadata;
   const displayName = metadata?.display_name || metadata?.name || genUserName(pubkey);
@@ -98,8 +100,10 @@ export default function ProfilePage() {
       metadata={author.data?.metadata}
       posts={posts}
       bookmarkedArticles={bookmarkedArticles}
+      highlights={highlights}
       postsLoading={postsLoading}
       bookmarksLoading={bookmarksLoading}
+      highlightsLoading={highlightsLoading}
     />
   );
 }
