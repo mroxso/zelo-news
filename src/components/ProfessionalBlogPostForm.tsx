@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
-import { EditorState, SerializedEditorState } from 'lexical';
+import { EditorState, LexicalEditor, SerializedEditorState } from 'lexical';
 import {
   $convertFromMarkdownString,
   $convertToMarkdownString,
@@ -43,7 +43,7 @@ interface ProfessionalBlogPostFormProps {
 }
 
 // Plugin to capture editor instance for markdown conversion
-function EditorRefPlugin({ editorRef }: { editorRef: React.MutableRefObject<any> }) {
+function EditorRefPlugin({ editorRef }: { editorRef: React.MutableRefObject<LexicalEditor | null> }) {
   const [editor] = useLexicalComposerContext();
   
   useEffect(() => {
@@ -63,7 +63,7 @@ function EditorWithRef({
   onChange,
   onSerializedChange,
 }: {
-  editorRef: React.MutableRefObject<any>;
+  editorRef: React.MutableRefObject<LexicalEditor | null>;
   editorSerializedState?: SerializedEditorState;
   onChange?: (editorState: EditorState) => void;
   onSerializedChange?: (editorSerializedState: SerializedEditorState) => void;
@@ -125,7 +125,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
     editIdentifier || ''
   );
 
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<LexicalEditor | null>(null);
   const [editorState, setEditorState] = useState<EditorState | null>(null);
   const [editorSerializedState, setEditorSerializedState] = useState<SerializedEditorState | null>(null);
   const [metadata, setMetadata] = useState({
@@ -179,7 +179,6 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
         console.error('Failed to convert markdown to editor state:', error);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingPost, editorSerializedState]);
 
   const handleMetadataChange = (field: keyof typeof metadata, value: string) => {
