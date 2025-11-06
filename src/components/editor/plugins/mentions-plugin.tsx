@@ -1,8 +1,8 @@
 import * as React from "react"
 import { JSX, useCallback, useEffect, useMemo, useState } from "react"
-import dynamic from "next/dynamic"
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
 import {
+  LexicalTypeaheadMenuPlugin,
   MenuOption,
   MenuTextMatch,
   useBasicTypeaheadTriggerMatch,
@@ -18,14 +18,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
-
-const LexicalTypeaheadMenuPlugin = dynamic(
-  () =>
-    import("@lexical/react/LexicalTypeaheadMenuPlugin").then(
-      (mod) => mod.LexicalTypeaheadMenuPlugin<MentionTypeaheadOption>
-    ),
-  { ssr: false }
-)
 
 const PUNCTUATION =
   "\\.,\\+\\*\\?\\$\\@\\|#{}\\(\\)\\^\\-\\[\\]\\\\/!%'\"~=<>_:;"

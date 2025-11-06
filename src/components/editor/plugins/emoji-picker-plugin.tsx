@@ -9,9 +9,9 @@
  */
 import * as React from "react"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import dynamic from "next/dynamic"
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
 import {
+  LexicalTypeaheadMenuPlugin,
   MenuOption,
   useBasicTypeaheadTriggerMatch,
 } from "@lexical/react/LexicalTypeaheadMenuPlugin"
@@ -29,14 +29,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command"
-
-const LexicalTypeaheadMenuPlugin = dynamic(
-  () =>
-    import("@lexical/react/LexicalTypeaheadMenuPlugin").then(
-      (mod) => mod.LexicalTypeaheadMenuPlugin<EmojiOption>
-    ),
-  { ssr: false }
-)
 
 class EmojiOption extends MenuOption {
   title: string

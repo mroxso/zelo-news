@@ -1,7 +1,9 @@
 import { JSX, useCallback, useMemo, useState } from "react"
-import dynamic from "next/dynamic"
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
-import { useBasicTypeaheadTriggerMatch } from "@lexical/react/LexicalTypeaheadMenuPlugin"
+import {
+  LexicalTypeaheadMenuPlugin,
+  useBasicTypeaheadTriggerMatch,
+} from "@lexical/react/LexicalTypeaheadMenuPlugin"
 import { TextNode } from "lexical"
 import { createPortal } from "react-dom"
 
@@ -14,14 +16,6 @@ import {
 } from "@/components/ui/command"
 
 import { ComponentPickerOption } from "./picker/component-picker-option"
-
-const LexicalTypeaheadMenuPlugin = dynamic(
-  () =>
-    import("@lexical/react/LexicalTypeaheadMenuPlugin").then(
-      (mod) => mod.LexicalTypeaheadMenuPlugin<ComponentPickerOption>
-    ),
-  { ssr: false }
-)
 
 export function ComponentPickerMenuPlugin({
   baseOptions = [],
