@@ -1,7 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
-import { SerializedEditorState } from 'lexical';
+import { EditorState, SerializedEditorState } from 'lexical';
+import {
+  $convertFromMarkdownString,
+  $convertToMarkdownString,
+  CHECK_LIST,
+  ELEMENT_TRANSFORMERS,
+  MULTILINE_ELEMENT_TRANSFORMERS,
+  TEXT_FORMAT_TRANSFORMERS,
+  TEXT_MATCH_TRANSFORMERS,
+} from '@lexical/markdown';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePublishBlogPost } from '@/hooks/usePublishBlogPost';
 import { useLongFormContentNote } from '@/hooks/useLongFormContentNote';
@@ -15,32 +25,92 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2, Upload, Image as ImageIcon, FileText, Hash, Calendar } from 'lucide-react';
-import { Editor } from '@/components/blocks/editor-00/editor';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { editorTheme } from '@/components/editor/themes/editor-theme';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { nodes as editorNodes } from '@/components/blocks/editor-x/nodes';
+import { Plugins } from '@/components/blocks/editor-x/plugins';
+import { EMOJI } from '@/components/editor/transformers/markdown-emoji-transformer';
+import { HR } from '@/components/editor/transformers/markdown-hr-transformer';
+import { IMAGE } from '@/components/editor/transformers/markdown-image-transformer';
+import { TABLE } from '@/components/editor/transformers/markdown-table-transformer';
+import { TWEET } from '@/components/editor/transformers/markdown-tweet-transformer';
 
 interface ProfessionalBlogPostFormProps {
   /** Existing post identifier for editing (optional) */
   editIdentifier?: string;
 }
 
-const initialEditorState = {
-  root: {
-    children: [
-      {
-        children: [],
-        direction: "ltr",
-        format: "",
-        indent: 0,
-        type: "paragraph",
-        version: 1,
-      },
-    ],
-    direction: "ltr",
-    format: "",
-    indent: 0,
-    type: "root",
-    version: 1,
-  },
-} as unknown as SerializedEditorState;
+// Plugin to capture editor instance for markdown conversion
+function EditorRefPlugin({ editorRef }: { editorRef: React.MutableRefObject<any> }) {
+  const [editor] = useLexicalComposerContext();
+  
+  useEffect(() => {
+    editorRef.current = editor;
+    return () => {
+      editorRef.current = null;
+    };
+  }, [editor, editorRef]);
+  
+  return null;
+}
+
+// Custom editor wrapper that includes the ref plugin
+function EditorWithRef({
+  editorRef,
+  editorSerializedState,
+  onChange,
+  onSerializedChange,
+}: {
+  editorRef: React.MutableRefObject<any>;
+  editorSerializedState?: SerializedEditorState;
+  onChange?: (editorState: EditorState) => void;
+  onSerializedChange?: (editorSerializedState: SerializedEditorState) => void;
+}) {
+  return (
+    <div className="bg-background overflow-hidden rounded-lg border shadow">
+      <LexicalComposer
+        initialConfig={{
+          namespace: "Editor",
+          theme: editorTheme,
+          nodes: editorNodes,
+          ...(editorSerializedState
+            ? { editorState: JSON.stringify(editorSerializedState) }
+            : {}),
+          onError: (error: Error) => {
+            console.error(error);
+          },
+        }}
+      >
+        <TooltipProvider>
+          <Plugins />
+          <EditorRefPlugin editorRef={editorRef} />
+          <OnChangePlugin
+            ignoreSelectionChange={true}
+            onChange={(editorState) => {
+              onChange?.(editorState);
+              onSerializedChange?.(editorState.toJSON());
+            }}
+          />
+        </TooltipProvider>
+      </LexicalComposer>
+    </div>
+  );
+}
+
+const markdownTransformers = [
+  TABLE,
+  HR,
+  IMAGE,
+  EMOJI,
+  TWEET,
+  CHECK_LIST,
+  ...ELEMENT_TRANSFORMERS,
+  ...MULTILINE_ELEMENT_TRANSFORMERS,
+  ...TEXT_FORMAT_TRANSFORMERS,
+  ...TEXT_MATCH_TRANSFORMERS,
+];
 
 export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPostFormProps) {
   const { user } = useCurrentUser();
@@ -55,7 +125,9 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
     editIdentifier || ''
   );
 
-  const [editorState, setEditorState] = useState<SerializedEditorState>(initialEditorState);
+  const editorRef = useRef<any>(null);
+  const [editorState, setEditorState] = useState<EditorState | null>(null);
+  const [editorSerializedState, setEditorSerializedState] = useState<SerializedEditorState | null>(null);
   const [metadata, setMetadata] = useState({
     identifier: '',
     title: '',
@@ -85,49 +157,30 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
         hashtags,
       });
 
-      // Convert markdown content to editor state
-      // We'll use a simple approach - the editor will handle the markdown
-      // For now, we'll just set it as the initial state
-      if (existingPost.content) {
-        try {
-          // Create a simple editor state with the markdown content as text
-          // The Lexical markdown plugin should handle conversion
-          const contentState = {
-            root: {
-              children: [
-                {
-                  children: [
-                    {
-                      detail: 0,
-                      format: 0,
-                      mode: "normal",
-                      style: "",
-                      text: existingPost.content,
-                      type: "text",
-                      version: 1,
-                    },
-                  ],
-                  direction: "ltr",
-                  format: "",
-                  indent: 0,
-                  type: "paragraph",
-                  version: 1,
-                },
-              ],
-              direction: "ltr",
-              format: "",
-              indent: 0,
-              type: "root",
-              version: 1,
-            },
-          } as unknown as SerializedEditorState;
-          setEditorState(contentState);
-        } catch (error) {
-          console.error('Failed to parse existing content:', error);
-        }
-      }
+      // Markdown content will be converted to editor state when the editor is ready
+      // This is handled in a separate effect below
     }
   }, [existingPost, editIdentifier]);
+
+  // Convert markdown to editor state when editor is ready
+  useEffect(() => {
+    if (existingPost?.content && editorRef.current && !editorSerializedState) {
+      const editor = editorRef.current;
+      try {
+        editor.update(() => {
+          $convertFromMarkdownString(
+            existingPost.content,
+            markdownTransformers,
+            undefined,
+            true // shouldPreserveNewLinesInMarkdown
+          );
+        }, { discrete: true });
+      } catch (error) {
+        console.error('Failed to convert markdown to editor state:', error);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingPost, editorSerializedState]);
 
   const handleMetadataChange = (field: keyof typeof metadata, value: string) => {
     setMetadata(prev => ({ ...prev, [field]: value }));
@@ -146,25 +199,20 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
   };
 
   const getMarkdownFromEditor = (): string => {
-    // Extract text content from the editor state
-    // In a full implementation, you'd use $convertToMarkdownString with proper transformers
+    if (!editorState) {
+      return '';
+    }
+
     try {
-      interface EditorNode {
-        children?: Array<{ text?: string }>;
-      }
-      
-      const root = editorState.root as { children?: EditorNode[] };
-      const content = (root.children || [])
-        .map((child: EditorNode) => {
-          if (child.children && Array.isArray(child.children)) {
-            return child.children
-              .map((textNode) => textNode.text || '')
-              .join('');
-          }
-          return '';
-        })
-        .join('\n\n');
-      return content;
+      let markdown = '';
+      editorState.read(() => {
+        markdown = $convertToMarkdownString(
+          markdownTransformers,
+          undefined,
+          true // shouldPreserveNewLinesInMarkdown
+        );
+      });
+      return markdown;
     } catch (error) {
       console.error('Failed to extract markdown:', error);
       return '';
@@ -437,10 +485,17 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
           <CardTitle className="text-lg">Content</CardTitle>
         </CardHeader>
         <CardContent>
-          <div >
-            <Editor
-              editorSerializedState={editorState}
-              onSerializedChange={(value) => setEditorState(value)}
+          <div>
+            <EditorWithRef
+              editorRef={editorRef}
+              editorSerializedState={editorSerializedState || undefined}
+              onChange={(state) => {
+                setEditorState(state);
+                setEditorSerializedState(state.toJSON());
+              }}
+              onSerializedChange={(value) => {
+                setEditorSerializedState(value);
+              }}
             />
           </div>
           <p className="text-xs text-muted-foreground mt-4">
