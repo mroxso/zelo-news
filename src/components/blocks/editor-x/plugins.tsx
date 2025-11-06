@@ -138,7 +138,7 @@ export function Plugins() {
               <CodeLanguageToolbarPlugin />
             ) : (
               <>
-                <FontFamilyToolbarPlugin />
+                {/* <FontFamilyToolbarPlugin /> */}
                 <FontSizeToolbarPlugin />
                 <Separator orientation="vertical" className="!h-7" />
                 <FontFormatToolbarPlugin />
@@ -155,7 +155,7 @@ export function Plugins() {
                 <Separator orientation="vertical" className="!h-7" />
                 <BlockInsertPlugin>
                   <InsertHorizontalRule />
-                  <InsertImage />
+                  {/* <InsertImage /> */}
                   <InsertTable />
                   <InsertColumnsLayout />
                   <InsertEmbeds />
@@ -219,9 +219,9 @@ export function Plugins() {
             ...TEXT_MATCH_TRANSFORMERS,
           ]}
         />
-        <TypingPerfPlugin />
+        {/* <TypingPerfPlugin /> */}
         <TabFocusPlugin />
-        <AutocompletePlugin />
+        {/* <AutocompletePlugin /> */}
         <AutoLinkPlugin />
         <LinkPlugin />
 
