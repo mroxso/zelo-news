@@ -1,3 +1,5 @@
+"use client"
+
 import { useCallback } from "react"
 import { $createCodeNode, $isCodeNode } from "@lexical/code"
 import {
