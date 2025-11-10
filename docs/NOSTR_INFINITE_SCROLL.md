@@ -34,18 +34,27 @@ Example usage with intersection observer for automatic loading:
 
 ```tsx
 import { useInView } from 'react-intersection-observer';
+import { useMemo } from 'react';
 
 function GlobalFeed() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useGlobalFeed();
   const { ref, inView } = useInView();
 
   useEffect(() => {
-    if (inView && hasNextPage) {
+    if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [inView, hasNextPage, fetchNextPage]);
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const posts = data?.pages.flat() || [];
+  // Remove duplicate events by ID
+  const posts = useMemo(() => {
+    const seen = new Set();
+    return data?.pages.flat().filter(event => {
+      if (!event.id || seen.has(event.id)) return false;
+      seen.add(event.id);
+      return true;
+    }) || [];
+  }, [data?.pages]);
 
   return (
     <div className="space-y-4">

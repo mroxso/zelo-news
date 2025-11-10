@@ -1,11 +1,82 @@
 ### AI Integration with Shakespeare API
 
-Use the `useShakespeare` hook for AI chat completions with Nostr authentication.
+Use the `useShakespeare` hook for AI chat completions with Nostr authentication. The API dynamically provides available models, so you should query them at runtime rather than hardcoding model names.
 
 ```tsx
-import { useShakespeare, type ChatMessage } from '@/hooks/useShakespeare';
+import { useShakespeare, type ChatMessage, type Model } from '@/hooks/useShakespeare';
 
-const { sendChatMessage, sendStreamingMessage, isLoading, error, isAuthenticated } = useShakespeare();
+const { 
+  sendChatMessage, 
+  sendStreamingMessage, 
+  getAvailableModels, 
+  isLoading, 
+  error, 
+  isAuthenticated 
+} = useShakespeare();
+```
+
+#### Model Selector Component
+
+```tsx
+function ModelSelector({ onModelSelect }: { onModelSelect: (modelId: string) => void }) {
+  const { getAvailableModels, isLoading } = useShakespeare();
+  const [models, setModels] = useState<Model[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('');
+
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        const response = await getAvailableModels();
+        // Sort models by total cost (cheapest first)
+        const sortedModels = response.data.sort((a, b) => {
+          const costA = parseFloat(a.pricing.prompt) + parseFloat(a.pricing.completion);
+          const costB = parseFloat(b.pricing.prompt) + parseFloat(b.pricing.completion);
+          return costA - costB;
+        });
+        setModels(sortedModels);
+        
+        // Select the cheapest model by default
+        if (sortedModels.length > 0) {
+          const cheapestModel = sortedModels[0];
+          setSelectedModel(cheapestModel.id);
+          onModelSelect(cheapestModel.id);
+        }
+      } catch (err) {
+        console.error('Failed to fetch models:', err);
+      }
+    };
+
+    fetchModels();
+  }, [getAvailableModels, onModelSelect]);
+
+  const handleModelChange = (modelId: string) => {
+    setSelectedModel(modelId);
+    onModelSelect(modelId);
+  };
+
+  return (
+    <div>
+      <label htmlFor="model-select">Choose Model:</label>
+      <select 
+        id="model-select"
+        value={selectedModel} 
+        onChange={(e) => handleModelChange(e.target.value)}
+        disabled={isLoading}
+      >
+        <option value="">Select a model...</option>
+        {models.map((model, index) => {
+          const totalCost = parseFloat(model.pricing.prompt) + parseFloat(model.pricing.completion);
+          const isCheapest = index === 0;
+          return (
+            <option key={model.id} value={model.id}>
+              {model.name} - {isCheapest ? "Cheapest" : `$${totalCost.toFixed(6)}/token`}
+            </option>
+          );
+        })}
+      </select>
+    </div>
+  );
+}
 ```
 
 #### Basic Chat Example
@@ -15,19 +86,24 @@ function AIChat() {
   const { sendChatMessage, isLoading, error, isAuthenticated } = useShakespeare();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
+  const [selectedModel, setSelectedModel] = useState<string>('');
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || !selectedModel) return;
 
     const newMessages = [...messages, { role: 'user', content: input }];
     setMessages(newMessages);
     setInput('');
 
-    const response = await sendChatMessage(newMessages, 'tybalt'); // Free model
-    setMessages(prev => [...prev, {
-      role: 'assistant',
-      content: response.choices[0].message.content as string
-    }]);
+    try {
+      const response = await sendChatMessage(newMessages, selectedModel);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: response.choices[0].message.content as string
+      }]);
+    } catch (err) {
+      console.error('Chat error:', err);
+    }
   };
 
   if (!isAuthenticated) return <div>Please log in to use AI</div>;
@@ -35,6 +111,11 @@ function AIChat() {
   return (
     <div className="max-w-2xl mx-auto p-4">
       {error && <div className="text-red-500 mb-4">{error}</div>}
+
+      {/* Model Selection */}
+      <div className="mb-4">
+        <ModelSelector onModelSelect={setSelectedModel} />
+      </div>
 
       <div className="space-y-2 mb-4">
         {messages.map((msg, i) => (
@@ -50,9 +131,14 @@ function AIChat() {
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
           className="flex-1 p-2 border rounded"
-          disabled={isLoading}
+          disabled={isLoading || !selectedModel}
+          placeholder={!selectedModel ? "Select a model first..." : "Type your message..."}
         />
-        <button onClick={handleSend} disabled={isLoading} className="px-4 py-2 bg-blue-500 text-white rounded">
+        <button 
+          onClick={handleSend} 
+          disabled={isLoading || !selectedModel} 
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
           Send
         </button>
       </div>
@@ -61,30 +147,73 @@ function AIChat() {
 }
 ```
 
-#### Streaming Chat
+#### Streaming Chat Example
 
 ```tsx
-const [currentResponse, setCurrentResponse] = useState('');
+function StreamingChat() {
+  const { sendStreamingMessage } = useShakespeare();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [currentResponse, setCurrentResponse] = useState('');
+  const [selectedModel, setSelectedModel] = useState<string>('');
 
-const handleStreaming = async (content: string) => {
-  setCurrentResponse('');
-  await sendStreamingMessage(messages, 'shakespeare', (chunk) => {
-    setCurrentResponse(prev => prev + chunk);
-  });
-};
+  const handleStreaming = async (content: string) => {
+    if (!selectedModel) return;
+    
+    setCurrentResponse('');
+    const newMessages = [...messages, { role: 'user', content }];
+    setMessages(newMessages);
+
+    try {
+      await sendStreamingMessage(newMessages, selectedModel, (chunk) => {
+        setCurrentResponse(prev => prev + chunk);
+      });
+      
+      // Add the complete response to messages
+      if (currentResponse.trim()) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: currentResponse
+        }]);
+      }
+    } catch (err) {
+      console.error('Streaming error:', err);
+    } finally {
+      setCurrentResponse('');
+    }
+  };
+
+  return (
+    <div>
+      {/* Model selection UI */}
+      <div className="mb-4">
+        <ModelSelector onModelSelect={setSelectedModel} />
+      </div>
+
+      {/* Chat interface */}
+      {/* ... rest of your chat UI */}
+    </div>
+  );
+}
 ```
 
-#### Models
+#### Model Information
 
-- **`tybalt`**: Free model for development
-- **`shakespeare`**: Premium model (requires credits)
+Models are dynamically fetched from the Shakespeare API and include:
+
+- **Model ID**: Unique identifier for the model
+- **Name**: Human-readable model name
+- **Description**: Model capabilities and use cases
+- **Context Window**: Maximum token limit for conversations
+- **Pricing**: Cost per token for prompt and completion
+- **Free Models**: Models with `pricing.prompt === "0"` and `pricing.completion === "0"`
 
 #### Key Points
 
-- User must be logged in with Nostr account
-- Use `tybalt` for free testing
-- Handle `isLoading` and `error` states
-- Check `isAuthenticated` before API calls
+- **Dynamic Model Discovery**: Always fetch available models using `getAvailableModels()`
+- **Authentication Required**: User must be logged in with Nostr account
+- **Free vs Premium**: Check pricing to determine if model requires credits
+- **Error Handling**: Handle `isLoading` and `error` states appropriately
+- **Model Selection**: Provide UI for users to choose between available models
 
 ## Implementation Patterns and Best Practices
 
@@ -182,9 +311,9 @@ function AIChatWithErrorBoundary() {
 function useAIWithErrorHandling() {
   const { sendChatMessage, error, clearError } = useShakespeare();
 
-  const sendMessage = async (messages: ChatMessage[]) => {
+  const sendMessage = async (messages: ChatMessage[], modelId: string) => {
     try {
-      await sendChatMessage(messages, 'tybalt');
+      await sendChatMessage(messages, modelId);
     } catch (err) {
       // Handle specific error types with user-friendly messages
       if (err.message.includes('401')) {

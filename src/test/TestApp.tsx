@@ -23,8 +23,12 @@ export function TestApp({ children }: TestAppProps) {
 
   const defaultConfig: AppConfig = {
     theme: 'light',
-    relayUrl: 'wss://relay.nostr.band',
-    blogOwnerPubkey: '82341f882b6eabcd2ba7f1ef90aad961cf074af15b9ef44a09f9d2a8fbfbe6a2',
+    relayMetadata: {
+      relays: [
+        { url: 'wss://relay.nostr.band', read: true, write: true },
+      ],
+      updatedAt: 0,
+    },
   };
 
   return (
