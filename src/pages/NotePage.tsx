@@ -18,6 +18,7 @@ import { Heart, MessageCircle, ArrowLeft } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import type { NostrEvent } from '@nostrify/nostrify';
 import NotFound from './NotFound';
+import { isValidDate, toISOStringSafe } from '@/lib/date';
 
 interface NotePageProps {
   eventId: string;
@@ -117,6 +118,7 @@ export function NotePage({ eventId }: NotePageProps) {
   }
 
   const date = new Date(note.created_at * 1000);
+  const validDate = isValidDate(date);
 
   return (
     <div className="min-h-screen">
@@ -145,18 +147,20 @@ export function NotePage({ eventId }: NotePageProps) {
               </Avatar>
               <div>
                 <div className="font-semibold">{displayName}</div>
-                <time 
-                  dateTime={date.toISOString()}
-                  className="text-sm text-muted-foreground"
-                >
-                  {date.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </time>
+                {validDate && (
+                  <time 
+                    dateTime={toISOStringSafe(date)}
+                    className="text-sm text-muted-foreground"
+                  >
+                    {date.toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </time>
+                )}
               </div>
             </Link>
           </CardHeader>

@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar } from 'lucide-react';
 import { useAuthor } from '@/hooks/useAuthor';
 import { genUserName } from '@/lib/genUserName';
+import { isValidDate, toISOStringSafe } from '@/lib/date';
 
 interface ArticlePreviewProps {
   post: NostrEvent;
@@ -48,6 +49,8 @@ export function ArticlePreview({ post, variant = 'default', showAuthor = true }:
     ? { month: 'short', day: 'numeric', year: 'numeric' }
     : { year: 'numeric', month: 'long', day: 'numeric' };
 
+  const valid = isValidDate(date);
+
   return (
     <Link to={`/${naddr}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
@@ -71,12 +74,14 @@ export function ArticlePreview({ post, variant = 'default', showAuthor = true }:
           )}
         </CardHeader>
         <CardContent className="pt-0">
-          <div className={`flex items-center gap-2 text-xs text-muted-foreground ${showAuthor || hashtags.length > 0 ? 'mb-3' : ''}`}>
-            <Calendar className="h-3 w-3" />
-            <time dateTime={date.toISOString()}>
-              {date.toLocaleDateString('en-US', dateFormat as Intl.DateTimeFormatOptions)}
-            </time>
-          </div>
+          {valid && (
+            <div className={`flex items-center gap-2 text-xs text-muted-foreground ${showAuthor || hashtags.length > 0 ? 'mb-3' : ''}`}>
+              <Calendar className="h-3 w-3" />
+              <time dateTime={toISOStringSafe(date)}>
+                {date.toLocaleDateString('en-US', dateFormat as Intl.DateTimeFormatOptions)}
+              </time>
+            </div>
+          )}
           {showAuthor && (
             <div className={`flex items-center gap-2 ${hashtags.length > 0 ? 'mb-3' : ''}`}>
               <Avatar className="h-6 w-6">

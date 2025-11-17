@@ -7,6 +7,7 @@ import { ArticleView } from '@/components/ArticleView';
 import { Skeleton } from '@/components/ui/skeleton';
 import NotFound from '@/pages/NotFound';
 import { genUserName } from '@/lib/genUserName';
+import { toISOStringSafe } from '@/lib/date';
 
 export default function ArticlePage() {
   const { nip19: naddr } = useParams<{ nip19: string }>();
@@ -71,11 +72,16 @@ export default function ArticlePage() {
     ogImage: image || `${siteUrl}/icon-512.png`,
     ogSiteName: 'zelo.news',
     // Article-specific OG tags
-    ...(post && isValidNaddr && {
-      articlePublishedTime: date.toISOString(),
-      articleAuthor: [authorName],
-      ...(hashtags.length > 0 && { articleTag: hashtags }),
-    }),
+    ...(post && isValidNaddr && (() => {
+      const iso = toISOStringSafe(date);
+      return iso
+        ? {
+            articlePublishedTime: iso,
+            articleAuthor: [authorName],
+            ...(hashtags.length > 0 && { articleTag: hashtags }),
+          }
+        : {};
+    })()),
     // Twitter Card tags
     twitterCard: 'summary_large_image',
     twitterTitle: title,

@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Calendar, Heart, Edit, ArrowLeft, Share2, Check, Code } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import { calculateReadingTime } from '@/lib/calculateReadingTime';
+import { isValidDate, toISOStringSafe } from '@/lib/date';
 import { useToast } from '@/hooks/useToast';
 import { useState } from 'react';
 import {
@@ -108,6 +109,8 @@ export function ArticleView({ post }: ArticleViewProps) {
     }
   };
 
+  const validDate = isValidDate(date);
+
   return (
     <div className="min-h-screen">
       <ArticleProgressBar />
@@ -144,16 +147,18 @@ export function ArticleView({ post }: ArticleViewProps) {
               </Avatar>
               <div>
                 <div className="font-semibold">{displayName}</div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  <time dateTime={date.toISOString()}>
-                    {date.toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </time>
-                </div>
+                {validDate && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    <time dateTime={toISOStringSafe(date)}>
+                      {date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </time>
+                  </div>
+                )}
               </div>
             </Link>
 

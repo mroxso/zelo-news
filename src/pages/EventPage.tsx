@@ -13,6 +13,7 @@ import { ArrowLeft, Calendar, Hash } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import type { NostrEvent } from '@nostrify/nostrify';
 import NotFound from './NotFound';
+import { isValidDate, toISOStringSafe } from '@/lib/date';
 
 interface EventPageProps {
   eventId: string;
@@ -118,6 +119,7 @@ export function EventPage({ eventId, relayHints, authorPubkey, kind }: EventPage
   }
 
   const date = new Date(event.created_at * 1000);
+  const validDate = isValidDate(date);
 
   return (
     <div className="min-h-screen">
@@ -141,19 +143,21 @@ export function EventPage({ eventId, relayHints, authorPubkey, kind }: EventPage
                 <Hash className="h-3 w-3" />
                 Kind {event.kind}
               </Badge>
-              <time 
-                dateTime={date.toISOString()}
-                className="text-sm text-muted-foreground flex items-center gap-1"
-              >
-                <Calendar className="h-3 w-3" />
-                {date.toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </time>
+              {validDate && (
+                <time 
+                  dateTime={toISOStringSafe(date)}
+                  className="text-sm text-muted-foreground flex items-center gap-1"
+                >
+                  <Calendar className="h-3 w-3" />
+                  {date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </time>
+              )}
             </div>
 
             <Link 
