@@ -33,6 +33,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { Event } from 'nostr-tools';
 import QRCode from 'qrcode';
+import type { WebLNProvider } from "@webbtc/webln-types";
 
 interface ZapDialogProps {
   target: Event;
@@ -55,7 +56,7 @@ interface ZapContentProps {
   isZapping: boolean;
   qrCodeUrl: string;
   copied: boolean;
-  hasWebLN: boolean;
+  webln: WebLNProvider | null;
   handleZap: () => void;
   handleCopy: () => void;
   openInWallet: () => void;
@@ -73,7 +74,7 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
   isZapping,
   qrCodeUrl,
   copied,
-  hasWebLN,
+  webln,
   handleZap,
   handleCopy,
   openInWallet,
@@ -138,7 +139,7 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
 
           {/* Payment buttons */}
           <div className="space-y-3 mt-4">
-            {hasWebLN && (
+            {webln && (
               <Button
                 onClick={() => {
                   const finalAmount = typeof amount === 'string' ? parseInt(amount, 10) : amount;
@@ -234,13 +235,12 @@ const ZapContent = forwardRef<HTMLDivElement, ZapContentProps>(({
 ));
 ZapContent.displayName = 'ZapContent';
 
-
 export function ZapDialog({ target, children, className }: ZapDialogProps) {
   const [open, setOpen] = useState(false);
   const { user } = useCurrentUser();
   const { data: author } = useAuthor(target.pubkey);
   const { toast } = useToast();
-  const { webln, activeNWC, hasWebLN, detectWebLN } = useWallet();
+  const { webln, activeNWC } = useWallet();
   const { zap, isZapping, invoice, setInvoice } = useZaps(target, webln, activeNWC, () => setOpen(false));
   const [amount, setAmount] = useState<number | string>(100);
   const [comment, setComment] = useState<string>('');
@@ -251,16 +251,9 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
 
   useEffect(() => {
     if (target) {
-      setComment('Zapped with zelo.news!');
+      setComment('Zapped with MKStack!');
     }
   }, [target]);
-
-  // Detect WebLN when dialog opens
-  useEffect(() => {
-    if (open && !hasWebLN) {
-      detectWebLN();
-    }
-  }, [open, hasWebLN, detectWebLN]);
 
   // Generate QR code
   useEffect(() => {
@@ -345,7 +338,7 @@ export function ZapDialog({ target, children, className }: ZapDialogProps) {
     isZapping,
     qrCodeUrl,
     copied,
-    hasWebLN,
+    webln,
     handleZap,
     handleCopy,
     openInWallet,

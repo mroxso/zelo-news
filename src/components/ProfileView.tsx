@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link2, Copy, Check, Bookmark, BadgeCheck, Zap } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
-import { RelaySelector } from '@/components/RelaySelector';
+import { RelayListManager } from '@/components/RelayListManager';
 import { ArticlePreview } from '@/components/ArticlePreview';
 import { FollowButton } from '@/components/FollowButton';
 import { useToast } from '@/hooks/useToast';
@@ -207,7 +207,7 @@ export function ProfileView({
                       <p className="text-muted-foreground">
                         No blog posts found from this author. Try another relay?
                       </p>
-                      <RelaySelector className="w-full" />
+                      <RelayListManager />
                     </div>
                   </CardContent>
                 </Card>
@@ -245,7 +245,7 @@ export function ProfileView({
                           This user hasn't bookmarked any articles yet.
                         </p>
                       </div>
-                      <RelaySelector className="w-full" />
+                      <RelayListManager />
                     </div>
                   </CardContent>
                 </Card>

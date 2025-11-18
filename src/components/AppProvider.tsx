@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 import { z } from 'zod';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { AppContext, type AppConfig, type AppContextType, type Theme } from '@/contexts/AppContext';
+import { AppContext, type AppConfig, type AppContextType, type Theme, type RelayMetadata } from '@/contexts/AppContext';
 
 interface AppProviderProps {
   children: ReactNode;
@@ -9,47 +9,54 @@ interface AppProviderProps {
   storageKey: string;
   /** Default app configuration */
   defaultConfig: AppConfig;
-  /** Optional list of preset relays to display in the RelaySelector */
-  presetRelays?: { name: string; url: string }[];
 }
 
+// Zod schema for RelayMetadata validation
+const RelayMetadataSchema = z.object({
+  relays: z.array(z.object({
+    url: z.string().url(),
+    read: z.boolean(),
+    write: z.boolean(),
+  })),
+  updatedAt: z.number(),
+}) satisfies z.ZodType<RelayMetadata>;
+
 // Zod schema for AppConfig validation
-const AppConfigSchema: z.ZodType<AppConfig, z.ZodTypeDef, unknown> = z.object({
+const AppConfigSchema = z.object({
   theme: z.enum(['dark', 'light', 'system']),
-  relayUrl: z.string().url(),
-  blogOwnerPubkey: z.string().length(64).optional(), // deprecated, optional for backward compatibility
-});
+  relayMetadata: RelayMetadataSchema,
+}) satisfies z.ZodType<AppConfig>;
 
 export function AppProvider(props: AppProviderProps) {
   const {
     children,
     storageKey,
     defaultConfig,
-    presetRelays,
   } = props;
 
   // App configuration state with localStorage persistence
-  const [config, setConfig] = useLocalStorage<AppConfig>(
+  const [rawConfig, setConfig] = useLocalStorage<Partial<AppConfig>>(
     storageKey,
-    defaultConfig,
+    {},
     {
       serialize: JSON.stringify,
       deserialize: (value: string) => {
         const parsed = JSON.parse(value);
-        return AppConfigSchema.parse(parsed);
+        return AppConfigSchema.partial().parse(parsed);
       }
     }
   );
 
   // Generic config updater with callback pattern
-  const updateConfig = (updater: (currentConfig: AppConfig) => AppConfig) => {
+  const updateConfig = (updater: (currentConfig: Partial<AppConfig>) => Partial<AppConfig>) => {
     setConfig(updater);
   };
+
+  const config = { ...defaultConfig, ...rawConfig };
 
   const appContextValue: AppContextType = {
     config,
     updateConfig,
-    presetRelays,
   };
 
   // Apply theme effects to document
@@ -89,11 +96,11 @@ function useApplyTheme(theme: Theme) {
     if (theme !== 'system') return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = () => {
       const root = window.document.documentElement;
       root.classList.remove('light', 'dark');
-      
+
       const systemTheme = mediaQuery.matches ? 'dark' : 'light';
       root.classList.add(systemTheme);
     };

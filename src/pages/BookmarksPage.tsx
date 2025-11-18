@@ -1,6 +1,6 @@
 import { useSeoMeta } from '@unhead/react';
 import { ArticlePreview } from '@/components/ArticlePreview';
-import { RelaySelector } from '@/components/RelaySelector';
+import { RelayListManager } from '@/components/RelayListManager';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useBookmarkedArticles } from '@/hooks/useBookmarkedArticles';
@@ -93,7 +93,7 @@ export function BookmarksPage() {
                 <p className="text-muted-foreground">
                   Couldn't load bookmarked articles. Try switching to a different relay?
                 </p>
-                <RelaySelector className="w-full" />
+                <RelayListManager />
               </div>
             </CardContent>
           </Card>

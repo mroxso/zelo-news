@@ -7,7 +7,7 @@ import { useNWC } from '@/hooks/useNWCContext';
 import type { NWCConnection } from '@/hooks/useNWC';
 import { nip57 } from 'nostr-tools';
 import type { Event } from 'nostr-tools';
-import type { WebLNProvider } from 'webln';
+import type { WebLNProvider } from '@webbtc/webln-types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import type { NostrEvent } from '@nostrify/nostrify';
@@ -205,7 +205,7 @@ export function useZaps(
         profile: actualTarget.pubkey,
         event: event,
         amount: zapAmount,
-        relays: [config.relayUrl],
+        relays: config.relayMetadata.relays.map(r => r.url),
         comment
       });
 
@@ -263,10 +263,22 @@ export function useZaps(
                 });
               }
             }
-            
+
             if (webln) {  // Try WebLN next
               try {
-                await webln.sendPayment(newInvoice);
+                // For native WebLN, we may need to enable it first
+                let webLnProvider = webln;
+                if (webln.enable && typeof webln.enable === 'function') {
+                  const enabledProvider = await webln.enable();
+                  // Some implementations return the provider, others return void
+                  // Cast to WebLNProvider to handle both cases
+                  const provider = enabledProvider as WebLNProvider | undefined;
+                  if (provider) {
+                    webLnProvider = provider;
+                  }
+                }
+
+                await webLnProvider.sendPayment(newInvoice);
 
                 // Clear states immediately on success
                 setIsZapping(false);
@@ -283,7 +295,7 @@ export function useZaps(
                 // Close dialog last to ensure clean state
                 onZapSuccess?.();
               } catch (weblnError) {
-                console.error('webln payment failed, falling back:', weblnError);
+                console.error('WebLN payment failed, falling back:', weblnError);
 
                 // Show specific WebLN error to user for debugging
                 const errorMessage = weblnError instanceof Error ? weblnError.message : 'Unknown WebLN error';

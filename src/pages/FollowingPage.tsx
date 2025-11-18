@@ -4,7 +4,7 @@ import { useFollowingBlogPosts } from '@/hooks/useFollowingBlogPosts';
 import { ArticlePreview } from '@/components/ArticlePreview';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RelaySelector } from '@/components/RelaySelector';
+import { RelayListManager } from '@/components/RelayListManager';
 import { Users } from 'lucide-react';
 import { LoginArea } from '@/components/auth/LoginArea';
 
@@ -88,7 +88,7 @@ export default function FollowingPage() {
                 <p className="text-muted-foreground">
                   Failed to load articles. Try another relay?
                 </p>
-                <RelaySelector className="w-full" />
+                <RelayListManager />
               </div>
             </CardContent>
           </Card>
@@ -108,7 +108,7 @@ export default function FollowingPage() {
                     Try following some authors or switching to a different relay.
                   </p>
                 </div>
-                <RelaySelector className="w-full" />
+                <RelayListManager />
               </div>
             </CardContent>
           </Card>

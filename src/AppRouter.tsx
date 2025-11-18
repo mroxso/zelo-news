@@ -9,6 +9,7 @@ import FollowingPage from "./pages/FollowingPage";
 import Nip05ProfilePage from "./pages/Nip05ProfilePage";
 import ArticleByDTagPage from "./pages/ArticleByDTagPage";
 import { NIP19Page } from "./pages/NIP19Page";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import HomePage from "./pages/HomePage";
 
@@ -24,6 +25,7 @@ export function AppRouter() {
           <Route path="/search" element={<SearchResultsPage />} />
           <Route path="/bookmarks" element={<BookmarksPage />} />
           <Route path="/following" element={<FollowingPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           {/* NIP-05 profile route (e.g., /p/alice@example.com) */}
           <Route path="/p/:nip05" element={<Nip05ProfilePage />} />
           {/* Article by d-tag route (e.g., /article/my-article-slug) */}

@@ -5,7 +5,7 @@ import { useAuthor } from '@/hooks/useAuthor';
 import { useAuthorBlogPosts } from '@/hooks/useAuthorBlogPosts';
 import { useUserBookmarkedArticles } from '@/hooks/useUserBookmarkedArticles';
 import { Card, CardContent } from '@/components/ui/card';
-import { RelaySelector } from '@/components/RelaySelector';
+import { RelayListManager } from '@/components/RelayListManager';
 import { ProfileView } from '@/components/ProfileView';
 import { ProfileSkeleton } from '@/components/ProfileSkeleton';
 import NotFound from '@/pages/NotFound';
@@ -63,7 +63,7 @@ export default function Nip05ProfilePage() {
                 <p className="text-sm text-muted-foreground">
                   The identifier may not exist, or the server may be temporarily unavailable. Try another relay?
                 </p>
-                <RelaySelector className="w-full" />
+                <RelayListManager />
               </div>
             </CardContent>
           </Card>
