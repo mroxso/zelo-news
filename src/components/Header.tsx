@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Button } from '@/components/ui/button';
-import { PenSquare, Bookmark, Users } from 'lucide-react';
+import { PenSquare, Bookmark, Users, Settings } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function Header() {
@@ -46,12 +46,22 @@ export function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden sm:flex items-center gap-2">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/settings" aria-label="Settings">
+              <Settings className="h-4 w-4" />
+            </Link>
+          </Button>
           <ThemeToggle />
           <LoginArea className="max-w-60" />
         </div>
 
         {/* Mobile: show LoginArea in header (bottom nav is still used for nav) */}
-        <div className="sm:hidden flex items-center">
+        <div className="sm:hidden flex items-center gap-1">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/settings" aria-label="Settings">
+              <Settings className="h-4 w-4" />
+            </Link>
+          </Button>
           <ThemeToggle />
           <LoginArea className='pl-2' />
         </div>
