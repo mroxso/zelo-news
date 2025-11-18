@@ -10,6 +10,7 @@ import { ZapButton } from '@/components/ZapButton';
 import { BookmarkButton } from '@/components/BookmarkButton';
 import { ReadingTime } from '@/components/ReadingTime';
 import { ArticleProgressBar } from '@/components/ArticleProgressBar';
+import { ClientTag } from '@/components/ClientTag';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -290,6 +291,10 @@ export function ArticleView({ post }: ArticleViewProps) {
         </div>
 
         <Separator className="my-8" />
+
+        <div className="mb-8">
+          <ClientTag event={post} />
+        </div>
 
         <CommentsSection root={post} />
       </article>
