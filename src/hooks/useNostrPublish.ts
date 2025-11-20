@@ -14,9 +14,11 @@ export function useNostrPublish(): UseMutationResult<NostrEvent> {
       if (user) {
         const tags = t.tags ?? [];
 
-        // Add the client tag if it doesn't exist
+        // Add the client tag if it doesn't exist (NIP-89)
+        // Format: ["client", "Client Name", "31990:pubkey:d-identifier", "wss://relay-hint"]
+        // The address and relay are optional but recommended for better discoverability
         if (location.protocol === "https:" && !tags.some(([name]) => name === "client")) {
-          tags.push(["client", location.hostname]);
+          tags.push(["client", "zelo.news"]);
         }
 
         const event = await user.signer.signEvent({
