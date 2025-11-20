@@ -3,7 +3,7 @@ import { useZaps } from '@/hooks/useZaps';
 import { useWallet } from '@/hooks/useWallet';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuthor } from '@/hooks/useAuthor';
-import { Zap } from 'lucide-react';
+import { Loader2Icon, Zap } from 'lucide-react';
 import type { Event } from 'nostr-tools';
 import { Button } from './ui/button';
 
@@ -48,7 +48,7 @@ export function ZapButton({
           <Zap className="h-4 w-4" />
           <span className="text-xs">
             {showLoading ? (
-              '...'
+              <Loader2Icon className="h-4 w-4 animate-spin" />
             ) : showCount && totalSats > 0 ? (
               `${totalSats.toLocaleString()}`
             ) : (
