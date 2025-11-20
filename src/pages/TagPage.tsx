@@ -1,5 +1,7 @@
 import { useParams, Link } from 'react-router-dom';
 import { useSeoMeta } from '@unhead/react';
+import { useMemo, useEffect } from 'react';
+import { useInView } from 'react-intersection-observer';
 import { useBlogPostsByHashtag } from '@/hooks/useBlogPostsByHashtag';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,12 +13,30 @@ export default function TagPage() {
   const { tag } = useParams<{ tag: string }>();
   const hashtag = tag || '';
   
-  const { data: posts, isLoading } = useBlogPostsByHashtag(hashtag, 50);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useBlogPostsByHashtag(hashtag, 20);
+  const { ref, inView } = useInView();
+
+  // Auto-fetch next page when the sentinel element comes into view
+  useEffect(() => {
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Remove duplicate events by ID
+  const posts = useMemo(() => {
+    const seen = new Set();
+    return data?.pages.flat().filter(event => {
+      if (!event.id || seen.has(event.id)) return false;
+      seen.add(event.id);
+      return true;
+    }) || [];
+  }, [data?.pages]);
 
   // Set SEO meta tags
   const resultCount = posts?.length || 0;
   const title = `#${hashtag} - Articles - zelo.news`;
-  const description = `Browse ${resultCount} article${resultCount !== 1 ? 's' : ''} tagged with #${hashtag} on zelo.news`;
+  const description = `Browse article${resultCount !== 1 ? 's' : ''} tagged with #${hashtag} on zelo.news`;
 
   useSeoMeta({
     title,
@@ -37,7 +57,6 @@ export default function TagPage() {
               <Hash className="h-8 w-8 text-primary" />
               <div>
                 <Skeleton className="h-8 w-48 mb-1" />
-                <Skeleton className="h-4 w-64" />
               </div>
             </div>
           </div>
@@ -75,11 +94,8 @@ export default function TagPage() {
             <Hash className="h-8 w-8 text-primary" />
             <div className="flex-1">
               <h1 className="text-3xl font-bold tracking-tight">
-                #{hashtag}
+                {hashtag}
               </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {posts?.length || 0} {posts?.length === 1 ? 'article' : 'articles'} in this tag
-              </p>
             </div>
           </div>
         </div>
@@ -99,11 +115,32 @@ export default function TagPage() {
 
         {/* Posts Grid */}
         {posts && posts.length > 0 && (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post) => (
-              <ArticlePreview key={post.id} post={post} />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {posts.map((post) => (
+                <ArticlePreview key={post.id} post={post} />
+              ))}
+            </div>
+
+            {/* Infinite scroll sentinel */}
+            {hasNextPage && (
+              <div ref={ref} className="col-span-full py-8">
+                {isFetchingNextPage && (
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {[1, 2, 3].map((i) => (
+                      <Card key={i}>
+                        <Skeleton className="h-48 w-full" />
+                        <CardContent className="pt-6">
+                          <Skeleton className="h-6 w-3/4" />
+                          <Skeleton className="h-4 w-full mt-2" />
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
