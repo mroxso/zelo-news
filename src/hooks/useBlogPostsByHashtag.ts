@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import type { NostrEvent } from '@nostrify/nostrify';
 
@@ -24,23 +24,32 @@ function validateBlogPost(event: NostrEvent): event is BlogPost {
 }
 
 /**
- * Hook to fetch blog posts filtered by a specific hashtag
+ * Hook to fetch blog posts filtered by a specific hashtag with infinite scroll
  */
-export function useBlogPostsByHashtag(hashtag: string, limit: number = 50) {
+export function useBlogPostsByHashtag(hashtag: string, limit: number = 20) {
   const { nostr } = useNostr();
 
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['blog-posts-hashtag', hashtag],
-    queryFn: async (c) => {
-      const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]);
+    queryFn: async ({ pageParam, signal }) => {
+      const filter: {
+        kinds: number[];
+        '#t': string[];
+        limit: number;
+        until?: number;
+      } = { 
+        kinds: [30023], 
+        '#t': [hashtag.toLowerCase()],
+        limit: limit 
+      };
       
+      if (pageParam) {
+        filter.until = pageParam;
+      }
+
       const events = await nostr.query(
-        [{
-          kinds: [30023],
-          '#t': [hashtag.toLowerCase()],
-          limit: limit,
-        }],
-        { signal }
+        [filter],
+        { signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]) }
       );
 
       // Filter and validate events
@@ -57,5 +66,16 @@ export function useBlogPostsByHashtag(hashtag: string, limit: number = 50) {
         return bTime - aTime;
       });
     },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.length === 0) return undefined;
+      
+      // Get the oldest timestamp from the last page
+      const oldestPost = lastPage[lastPage.length - 1];
+      const publishedAt = oldestPost.tags.find(([name]) => name === 'published_at')?.[1];
+      const timestamp = publishedAt ? parseInt(publishedAt) : oldestPost.created_at;
+      
+      return timestamp - 1; // Subtract 1 since 'until' is inclusive
+    },
+    initialPageParam: undefined,
   });
 }

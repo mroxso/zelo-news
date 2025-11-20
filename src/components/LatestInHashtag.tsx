@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,17 @@ const INITIAL_POSTS_COUNT = 3;
 
 export function LatestInHashtag({ hashtag, icon }: LatestInHashtagProps) {
   const navigate = useNavigate();
-  const { data: posts, isLoading } = useBlogPostsByHashtag(hashtag, 4);
+  const { data, isLoading } = useBlogPostsByHashtag(hashtag, 4);
+
+  // Remove duplicate events by ID
+  const posts = useMemo(() => {
+    const seen = new Set();
+    return data?.pages.flat().filter(event => {
+      if (!event.id || seen.has(event.id)) return false;
+      seen.add(event.id);
+      return true;
+    }) || [];
+  }, [data?.pages]);
 
   // Loading state
   if (isLoading) {
