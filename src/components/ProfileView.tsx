@@ -21,6 +21,10 @@ interface ProfileViewProps {
   bookmarkedArticles?: NostrEvent[];
   postsLoading?: boolean;
   bookmarksLoading?: boolean;
+  followerCount?: number;
+  followingCount?: number;
+  followerCountLoading?: boolean;
+  followingCountLoading?: boolean;
 }
 
 export function ProfileView({
@@ -30,6 +34,10 @@ export function ProfileView({
   bookmarkedArticles,
   postsLoading = false,
   bookmarksLoading = false,
+  followerCount = 0,
+  followingCount = 0,
+  followerCountLoading = false,
+  followingCountLoading = false,
 }: ProfileViewProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -131,6 +139,26 @@ export function ProfileView({
                       <span>{metadata.lud16}</span>
                     </div>
                   )}
+                </div>
+
+                {/* Follower/Following Stats */}
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-1">
+                    {followingCountLoading ? (
+                      <Skeleton className="h-5 w-12" />
+                    ) : (
+                      <span className="font-semibold">{followingCount?.toLocaleString() ?? 0}</span>
+                    )}
+                    <span className="text-muted-foreground">Following</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {followerCountLoading ? (
+                      <Skeleton className="h-5 w-12" />
+                    ) : (
+                      <span className="font-semibold">{followerCount?.toLocaleString() ?? 0}</span>
+                    )}
+                    <span className="text-muted-foreground">Followers</span>
+                  </div>
                 </div>
 
                 {about && (
