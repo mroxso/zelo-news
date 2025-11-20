@@ -10,6 +10,7 @@ import Nip05ProfilePage from "./pages/Nip05ProfilePage";
 import ArticleByDTagPage from "./pages/ArticleByDTagPage";
 import { NIP19Page } from "./pages/NIP19Page";
 import SettingsPage from "./pages/SettingsPage";
+import TagPage from "./pages/TagPage";
 import NotFound from "./pages/NotFound";
 import HomePage from "./pages/HomePage";
 
@@ -30,6 +31,8 @@ export function AppRouter() {
           <Route path="/p/:nip05" element={<Nip05ProfilePage />} />
           {/* Article by d-tag route (e.g., /article/my-article-slug) */}
           <Route path="/article/:dtag" element={<ArticleByDTagPage />} />
+          {/* Tag browsing route (e.g., /tag/bitcoin) */}
+          <Route path="/tag/:tag" element={<TagPage />} />
           {/* NIP-19 route for all Nostr identifiers (npub, nprofile, naddr, note, nevent) */}
           <Route path="/:nip19" element={<NIP19Page />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -67,7 +67,7 @@ export function LatestInHashtag({ hashtag, icon, title }: LatestInHashtagProps) 
         </div>
         {hasMore && (
           <Button
-            onClick={() => navigate(`/search?q=${encodeURIComponent('#' + hashtag)}`)}
+            onClick={() => navigate(`/tag/${encodeURIComponent(hashtag)}`)}
             variant="outline"
             size="default"
             className="gap-1"

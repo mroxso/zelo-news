@@ -90,7 +90,7 @@ export function TrendingTags() {
                 key={tag}
                 variant="secondary"
                 className="text-sm py-2 px-3 cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                onClick={() => navigate(`/search?q=${encodeURIComponent('#' + tag)}`)}
+                onClick={() => navigate(`/tag/${encodeURIComponent(tag)}`)}
               >
                 <Hash className="h-3 w-3 mr-1" />
                 {tag}
