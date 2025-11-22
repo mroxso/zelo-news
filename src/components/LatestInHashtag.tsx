@@ -9,11 +9,12 @@ import { ArticlePreview } from '@/components/ArticlePreview';
 interface LatestInHashtagProps {
   hashtag: string;
   icon?: React.ReactNode;
+  title?: string;
 }
 
 const INITIAL_POSTS_COUNT = 3;
 
-export function LatestInHashtag({ hashtag, icon }: LatestInHashtagProps) {
+export function LatestInHashtag({ hashtag, icon, title }: LatestInHashtagProps) {
   const navigate = useNavigate();
   const { data: posts, isLoading } = useBlogPostsByHashtag(hashtag, 4);
 
@@ -58,7 +59,7 @@ export function LatestInHashtag({ hashtag, icon }: LatestInHashtagProps) {
         {icon || <Hash className="h-8 w-8 text-primary" />}
         <div className="flex-1">
           <h2 className="text-3xl font-bold tracking-tight">
-            Latest in #{hashtag}
+            {title || `Latest in #${hashtag}`}
           </h2>
           {/* <p className="text-sm text-muted-foreground mt-1">
             {posts.length} {posts.length === 1 ? 'article' : 'articles'} in this category
