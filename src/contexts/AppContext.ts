@@ -14,6 +14,8 @@ export interface AppConfig {
   theme: Theme;
   /** NIP-65 relay list metadata */
   relayMetadata: RelayMetadata;
+  /** Hide latest articles section on home page */
+  hideLatestArticles?: boolean;
 }
 
 export interface AppContextType {
