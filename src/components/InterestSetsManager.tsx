@@ -64,9 +64,9 @@ function InterestSetDialog({
     publishInterestSet(
       {
         identifier: formData.identifier.trim(),
-        title: formData.title || undefined,
-        image: formData.image || undefined,
-        description: formData.description || undefined,
+        title: formData.title.trim() || undefined,
+        image: formData.image.trim() || undefined,
+        description: formData.description.trim() || undefined,
         hashtags: formData.hashtags,
       },
       {
