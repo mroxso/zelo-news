@@ -21,7 +21,7 @@ export function SettingsPage() {
   const handleHideLatestArticlesToggle = () => {
     updateConfig((current) => ({
       ...current,
-      hideLatestArticles: !hideLatestArticles,
+      hideLatestArticles: !(current.hideLatestArticles ?? false),
     }));
   };
 
