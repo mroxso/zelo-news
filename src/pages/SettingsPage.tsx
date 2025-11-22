@@ -5,14 +5,24 @@ import { Switch } from '@/components/ui/switch';
 import { RelayListManager } from '@/components/RelayListManager';
 import { InterestSetsManager } from '@/components/InterestSetsManager';
 import { useTheme } from '@/hooks/useTheme';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const { config, updateConfig } = useAppContext();
 
   const isDarkMode = theme === 'dark';
+  const hideLatestArticles = config.hideLatestArticles ?? false;
 
   const handleThemeToggle = () => {
     setTheme(isDarkMode ? 'light' : 'dark');
+  };
+
+  const handleHideLatestArticlesToggle = () => {
+    updateConfig((current) => ({
+      ...current,
+      hideLatestArticles: !(current.hideLatestArticles ?? false),
+    }));
   };
 
   return (
@@ -42,20 +52,37 @@ export function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="dark-mode" className="text-base cursor-pointer">
-                  Dark Mode
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Switch between light and dark themes
-                </p>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="dark-mode" className="text-base cursor-pointer">
+                    Dark Mode
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Switch between light and dark themes
+                  </p>
+                </div>
+                <Switch
+                  id="dark-mode"
+                  checked={isDarkMode}
+                  onCheckedChange={handleThemeToggle}
+                />
               </div>
-              <Switch
-                id="dark-mode"
-                checked={isDarkMode}
-                onCheckedChange={handleThemeToggle}
-              />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="hide-latest" className="text-base cursor-pointer">
+                    Hide Latest Articles
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Hide the latest articles section on the home page
+                  </p>
+                </div>
+                <Switch
+                  id="hide-latest"
+                  checked={hideLatestArticles}
+                  onCheckedChange={handleHideLatestArticlesToggle}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>

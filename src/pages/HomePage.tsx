@@ -6,10 +6,12 @@ import { TrendingTags } from '@/components/TrendingTags';
 import { Music, Leaf, BrainCircuit, Bitcoin, Newspaper, Hash } from 'lucide-react';
 import { useInterestSets } from '@/hooks/useInterestSets';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useAppContext } from '@/hooks/useAppContext';
 
 export default function HomePage() {
   const { user } = useCurrentUser();
   const { data: interestSets } = useInterestSets();
+  const { config } = useAppContext();
 
   useSeoMeta({
     title: 'zelo.news - Decentralized News on Nostr',
@@ -53,7 +55,7 @@ export default function HomePage() {
         <TrendingTags />
 
         {/* Latest Articles */}
-        <LatestArticles />
+        {!config.hideLatestArticles && <LatestArticles />}
 
         {/* Display interest sets or default hashtags */}
         {displaySets ? (
