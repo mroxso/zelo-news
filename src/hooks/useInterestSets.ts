@@ -51,7 +51,17 @@ export function useInterestSets() {
         { signal }
       );
 
-      return events.map(parseInterestSet).sort((a, b) => {
+      // Deduplicate by 'd' tag identifier, keeping only the most recent event
+      const eventsByIdentifier = new Map<string, NostrEvent>();
+      for (const event of events) {
+        const identifier = event.tags.find(([name]) => name === 'd')?.[1] || '';
+        const existing = eventsByIdentifier.get(identifier);
+        if (!existing || event.created_at > existing.created_at) {
+          eventsByIdentifier.set(identifier, event);
+        }
+      }
+      const dedupedEvents = Array.from(eventsByIdentifier.values());
+      return dedupedEvents.map(parseInterestSet).sort((a, b) => {
         // Sort by title if available, otherwise by identifier
         const aName = a.title || a.identifier;
         const bName = b.title || b.identifier;
