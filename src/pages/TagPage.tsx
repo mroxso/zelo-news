@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Hash, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ArticlePreview } from '@/components/ArticlePreview';
+import { deduplicateEvents } from '@/lib/deduplicateEvents';
 
 export default function TagPage() {
   const { tag } = useParams<{ tag: string }>();
@@ -25,12 +26,7 @@ export default function TagPage() {
 
   // Remove duplicate events by ID
   const posts = useMemo(() => {
-    const seen = new Set();
-    return data?.pages.flat().filter(event => {
-      if (!event.id || seen.has(event.id)) return false;
-      seen.add(event.id);
-      return true;
-    }) || [];
+    return deduplicateEvents(data?.pages.flat() || []);
   }, [data?.pages]);
 
   // Set SEO meta tags

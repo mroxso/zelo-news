@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Hash, ChevronRight } from 'lucide-react';
 import { useBlogPostsByHashtag } from '@/hooks/useBlogPostsByHashtag';
 import { ArticlePreview } from '@/components/ArticlePreview';
+import { deduplicateEvents } from '@/lib/deduplicateEvents';
 
 interface LatestInHashtagProps {
   hashtag: string;
@@ -21,12 +22,7 @@ export function LatestInHashtag({ hashtag, icon, title }: LatestInHashtagProps) 
 
   // Remove duplicate events by ID
   const posts = useMemo(() => {
-    const seen = new Set();
-    return data?.pages.flat().filter(event => {
-      if (!event.id || seen.has(event.id)) return false;
-      seen.add(event.id);
-      return true;
-    }) || [];
+    return deduplicateEvents(data?.pages.flat() || []);
   }, [data?.pages]);
 
   // Loading state
