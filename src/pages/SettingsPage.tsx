@@ -1,8 +1,9 @@
-import { Settings, Palette, Wifi } from 'lucide-react';
+import { Settings, Palette, Wifi, Hash } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { RelayListManager } from '@/components/RelayListManager';
+import { InterestSetsManager } from '@/components/InterestSetsManager';
 import { useTheme } from '@/hooks/useTheme';
 
 export function SettingsPage() {
@@ -72,6 +73,22 @@ export function SettingsPage() {
           </CardHeader>
           <CardContent>
             <RelayListManager />
+          </CardContent>
+        </Card>
+
+        {/* Interest Sets */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Hash className="h-5 w-5 text-primary" />
+              <CardTitle>Interest Sets</CardTitle>
+            </div>
+            <CardDescription>
+              Customize your homepage by creating interest sets. Each set groups related hashtags together and appears as a section on your feed.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <InterestSetsManager />
           </CardContent>
         </Card>
       </div>
