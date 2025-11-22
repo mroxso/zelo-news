@@ -63,7 +63,7 @@ function InterestSetDialog({
 
     publishInterestSet(
       {
-        identifier: formData.identifier,
+        identifier: formData.identifier.trim(),
         title: formData.title || undefined,
         image: formData.image || undefined,
         description: formData.description || undefined,
