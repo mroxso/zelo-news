@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Hash, ChevronRight } from 'lucide-react';
 import { useBlogPostsByHashtag } from '@/hooks/useBlogPostsByHashtag';
 import { ArticlePreview } from '@/components/ArticlePreview';
+import { deduplicateEvents } from '@/lib/deduplicateEvents';
 
 interface LatestInHashtagProps {
   hashtag: string;
@@ -16,7 +18,12 @@ const INITIAL_POSTS_COUNT = 3;
 
 export function LatestInHashtag({ hashtag, icon, title }: LatestInHashtagProps) {
   const navigate = useNavigate();
-  const { data: posts, isLoading } = useBlogPostsByHashtag(hashtag, 4);
+  const { data, isLoading } = useBlogPostsByHashtag(hashtag, 4);
+
+  // Remove duplicate events by ID
+  const posts = useMemo(() => {
+    return deduplicateEvents(data?.pages.flat() || []);
+  }, [data?.pages]);
 
   // Loading state
   if (isLoading) {
@@ -67,7 +74,7 @@ export function LatestInHashtag({ hashtag, icon, title }: LatestInHashtagProps) 
         </div>
         {hasMore && (
           <Button
-            onClick={() => navigate(`/search?q=${encodeURIComponent('#' + hashtag)}`)}
+            onClick={() => navigate(`/tag/${encodeURIComponent(hashtag)}`)}
             variant="outline"
             size="default"
             className="gap-1"

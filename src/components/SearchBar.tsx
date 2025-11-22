@@ -104,11 +104,13 @@ export function SearchBar({ className }: { className?: string }) {
         }
         break;
 
-      case 'hashtag':
-        // Navigate to search page with hashtag
-        navigate(`/search?q=${encodeURIComponent(detected.value)}`);
+      case 'hashtag': {
+        // Navigate to tag page (strip the # prefix)
+        const tagName = detected.value.startsWith('#') ? detected.value.slice(1) : detected.value;
+        navigate(`/tag/${encodeURIComponent(tagName)}`);
         setSearchTerm('');
         break;
+      }
 
       case 'search':
       default:

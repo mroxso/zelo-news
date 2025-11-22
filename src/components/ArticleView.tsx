@@ -182,7 +182,7 @@ export function ArticleView({ post }: ArticleViewProps) {
               {hashtags.map((tag) => (
                 <Link
                   key={tag}
-                  to={`/search?q=%23${encodeURIComponent(tag)}`}
+                  to={`/tag/${encodeURIComponent(tag)}`}
                   className="hover:opacity-80"
                 >
                   <Badge variant="secondary">#{tag}</Badge>
