@@ -30,7 +30,7 @@ export function useBlogPostsByHashtag(hashtag: string, limit: number = 20) {
   const { nostr } = useNostr();
 
   return useInfiniteQuery({
-    queryKey: ['blog-posts-hashtag', hashtag],
+    queryKey: ['blog-posts-hashtag', hashtag, limit],
     queryFn: async ({ pageParam, signal }) => {
       const filter: {
         kinds: number[];
