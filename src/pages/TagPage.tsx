@@ -101,7 +101,7 @@ export default function TagPage() {
         </div>
 
         {/* No results */}
-        {!isLoading && (!posts || posts.length === 0) && (
+        {!isLoading && posts.length === 0 && (
           <Card className="border-dashed">
             <CardContent className="py-12 px-8 text-center">
               <div className="max-w-sm mx-auto space-y-6">
