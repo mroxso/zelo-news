@@ -3,7 +3,7 @@ import { Highlight } from '@/components/highlights/Highlight';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Highlighter } from 'lucide-react';
-import { RelaySelector } from '@/components/RelaySelector';
+import { RelayListManager } from '@/components/RelayListManager';
 
 export default function HighlightsPage() {
   const { data: highlights, isLoading } = useAllHighlights(100);
@@ -60,7 +60,7 @@ export default function HighlightsPage() {
                       Highlights will appear here once users start highlighting content.
                     </p>
                   </div>
-                  <RelaySelector className="w-full" />
+                  <RelayListManager />
                 </div>
               </CardContent>
             </Card>
