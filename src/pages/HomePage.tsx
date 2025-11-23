@@ -59,24 +59,23 @@ export default function HomePage() {
 
         {/* Display interest sets or default hashtags */}
         {displaySets ? (
-          // User's custom interest sets - show first hashtag from each set
+          // User's custom interest sets - show all hashtags from each set
           displaySets
             .filter((set) => set.hashtags.length > 0)
             .map((set) => {
-              const primaryHashtag = set.hashtags[0];
               return (
                 <LatestInHashtag
                   key={set.id}
-                  hashtag={primaryHashtag}
+                  hashtags={set.hashtags}
                   icon={<Hash className="h-6 w-6 text-primary" />}
-                  title={set.title || `Latest in #${primaryHashtag}`}
+                  title={set.title}
                 />
               );
             })
         ) : (
           // Default hashtags for logged-out users or users without interest sets
           defaultHashtags.map(({ hashtag, icon }) => (
-            <LatestInHashtag key={hashtag} hashtag={hashtag} icon={icon} />
+            <LatestInHashtag key={hashtag} hashtags={hashtag} icon={icon} />
           ))
         )}
       </div>

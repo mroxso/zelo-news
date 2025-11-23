@@ -4,21 +4,76 @@ import { Card, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Hash, ChevronRight } from 'lucide-react';
-import { useBlogPostsByHashtag } from '@/hooks/useBlogPostsByHashtag';
+import { useNostr } from '@nostrify/react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import type { NostrEvent } from '@nostrify/nostrify';
 import { ArticlePreview } from '@/components/ArticlePreview';
 import { deduplicateEvents } from '@/lib/deduplicateEvents';
 
 interface LatestInHashtagProps {
-  hashtag: string;
+  hashtags: string | string[];
   icon?: React.ReactNode;
   title?: string;
 }
 
+interface BlogPost extends NostrEvent {
+  kind: 30023;
+}
+
+/**
+ * Validates that a Nostr event is a valid NIP-23 blog post
+ */
+function validateBlogPost(event: NostrEvent): event is BlogPost {
+  if (event.kind !== 30023) return false;
+
+  const d = event.tags.find(([name]) => name === 'd')?.[1];
+  const title = event.tags.find(([name]) => name === 'title')?.[1];
+
+  if (!d || !title) return false;
+
+  return true;
+}
+
 const INITIAL_POSTS_COUNT = 3;
 
-export function LatestInHashtag({ hashtag, icon, title }: LatestInHashtagProps) {
+export function LatestInHashtag({ hashtags, icon, title }: LatestInHashtagProps) {
   const navigate = useNavigate();
-  const { data, isLoading } = useBlogPostsByHashtag(hashtag, 4);
+  const { nostr } = useNostr();
+  
+  // Normalize hashtags to always be an array
+  const hashtagArray = useMemo(() => {
+    return Array.isArray(hashtags) ? hashtags : [hashtags];
+  }, [hashtags]);
+
+  const { data, isLoading } = useInfiniteQuery({
+    queryKey: ['blog-posts-hashtags', hashtagArray, 4],
+    queryFn: async ({ pageParam, signal }) => {
+      const filter: {
+        kinds: number[];
+        '#t': string[];
+        limit: number;
+        until?: number;
+      } = { 
+        kinds: [30023], 
+        '#t': hashtagArray.map(h => h.toLowerCase()),
+        limit: 4
+      };
+      
+      if (pageParam) {
+        filter.until = pageParam;
+      }
+
+      const events = await nostr.query([filter], { signal: AbortSignal.any([signal, AbortSignal.timeout(3000)]) });
+      
+      return events.filter(validateBlogPost);
+    },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.length === 0) return undefined;
+      const oldestEvent = lastPage[lastPage.length - 1];
+      return oldestEvent.created_at;
+    },
+    initialPageParam: undefined as number | undefined,
+  });
 
   // Remove duplicate events by ID
   const posts = useMemo(() => {
@@ -66,15 +121,18 @@ export function LatestInHashtag({ hashtag, icon, title }: LatestInHashtagProps) 
         {icon || <Hash className="h-8 w-8 text-primary" />}
         <div className="flex-1">
           <h2 className="text-3xl font-bold tracking-tight">
-            {title || `Latest in #${hashtag}`}
+            {title || (hashtagArray.length === 1 
+              ? `Latest in #${hashtagArray[0]}`
+              : `Latest in ${hashtagArray.map(h => `#${h}`).join(', ')}`
+            )}
           </h2>
           {/* <p className="text-sm text-muted-foreground mt-1">
             {posts.length} {posts.length === 1 ? 'article' : 'articles'} in this category
           </p> */}
         </div>
-        {hasMore && (
+        {hasMore && hashtagArray.length === 1 && (
           <Button
-            onClick={() => navigate(`/tag/${encodeURIComponent(hashtag)}`)}
+            onClick={() => navigate(`/tag/${encodeURIComponent(hashtagArray[0])}`)}
             variant="outline"
             size="default"
             className="gap-1"
