@@ -25,7 +25,7 @@ export interface InterestSetData {
 }
 
 /**
- * Parses a Nostr event (kind 30015) into an InterestSet object
+ * Parses a Nostr event (kind 30015) into a ParsedInterestSet object
  */
 export function parseInterestSetEvent(event: NostrEvent): ParsedInterestSet {
   const identifier = event.tags.find(([name]) => name === 'd')?.[1] || '';

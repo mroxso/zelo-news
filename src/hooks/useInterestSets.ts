@@ -17,7 +17,12 @@ export interface InterestSet {
 function eventToInterestSet(event: NostrEvent): InterestSet {
   const parsed = parseInterestSetEvent(event);
   return {
-    ...parsed,
+    id: parsed.id,
+    identifier: parsed.identifier,
+    title: parsed.title,
+    image: parsed.image,
+    description: parsed.description,
+    hashtags: parsed.hashtags,
     event,
   };
 }
