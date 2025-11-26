@@ -118,7 +118,7 @@ export function NostrSync() {
               ...current,
               interestSetsMetadata: {
                 sets: {},
-                updatedAt: current.interestSetsMetadata.updatedAt,
+                updatedAt: current.interestSetsMetadata?.updatedAt || 0,
               },
             }));
           }
