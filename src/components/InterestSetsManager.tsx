@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit2, Hash, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Hash, X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -12,6 +12,7 @@ import { useInterestSets, type InterestSet } from '@/hooks/useInterestSets';
 import { usePublishInterestSet } from '@/hooks/usePublishInterestSet';
 import { useDeleteInterestSet } from '@/hooks/useDeleteInterestSet';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useToast } from '@/hooks/useToast';
 
 interface InterestSetFormData {
   identifier: string;
@@ -227,8 +228,26 @@ function InterestSetDialog({
 
 export function InterestSetsManager() {
   const { user } = useCurrentUser();
-  const { data: interestSets, isLoading } = useInterestSets();
+  const { data: interestSets, isLoading, refetch, isFetching } = useInterestSets();
   const { mutate: deleteInterestSet } = useDeleteInterestSet();
+  const { toast } = useToast();
+
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      toast({
+        title: 'Refreshed',
+        description: 'Interest sets have been updated.',
+      });
+    } catch (error) {
+      console.error('Failed to refresh interest sets:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to refresh interest sets.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   if (!user) {
     return (
@@ -269,19 +288,18 @@ export function InterestSetsManager() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div>
-          <p className="text-sm text-muted-foreground">
-            Create custom interest sets to organize your homepage feed. Each set groups related hashtags together.
-          </p>
+        <div className="flex gap-2">
+          <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isLoading || isFetching}>
+            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+          </Button>
+          <InterestSetDialog
+            trigger={
+              <Button variant={"outline"}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            }
+          />
         </div>
-        <InterestSetDialog
-          trigger={
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Interest Set
-            </Button>
-          }
-        />
       </div>
 
       {!interestSets || interestSets.length === 0 ? (
