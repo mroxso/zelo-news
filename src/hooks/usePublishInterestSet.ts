@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from './useCurrentUser';
 import { useToast } from './useToast';
+import { useAppContext } from './useAppContext';
 
 export interface PublishInterestSetParams {
   identifier: string;
@@ -16,6 +17,7 @@ export function usePublishInterestSet() {
   const { user } = useCurrentUser();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { updateConfig } = useAppContext();
 
   return useMutation({
     mutationFn: async (params: PublishInterestSetParams) => {
@@ -54,9 +56,24 @@ export function usePublishInterestSet() {
 
       await nostr.event(event, { signal: AbortSignal.timeout(5000) });
 
-      return event;
+      return { event, params };
     },
-    onSuccess: () => {
+    onSuccess: ({ params }) => {
+      // Update local AppContext with the new interest set
+      updateConfig((currentConfig) => {
+        const currentSets = currentConfig.interestSetsMetadata?.sets || {};
+        return {
+          ...currentConfig,
+          interestSetsMetadata: {
+            sets: {
+              ...currentSets,
+              [params.identifier]: params.hashtags,
+            },
+            updatedAt: Math.floor(Date.now() / 1000),
+          },
+        };
+      });
+
       queryClient.invalidateQueries({ queryKey: ['interest-sets'] });
       toast({
         title: 'Success',
