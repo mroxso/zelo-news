@@ -26,6 +26,7 @@ const AppConfigSchema = z.object({
   theme: z.enum(['dark', 'light', 'system']),
   relayMetadata: RelayMetadataSchema,
   hideLatestArticles: z.boolean().optional(),
+  interestSets: z.record(z.string(), z.array(z.string())),
 }) satisfies z.ZodType<AppConfig>;
 
 export function AppProvider(props: AppProviderProps) {

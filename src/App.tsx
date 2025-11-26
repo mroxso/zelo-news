@@ -43,6 +43,7 @@ const defaultConfig: AppConfig = {
     ],
     updatedAt: 0,
   },
+  interestSets: {},
 };
 
 const dmConfig: DMConfig = {

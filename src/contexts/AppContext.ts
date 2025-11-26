@@ -16,6 +16,8 @@ export interface AppConfig {
   relayMetadata: RelayMetadata;
   /** Hide latest articles section on home page */
   hideLatestArticles?: boolean;
+  /** User-defined interest sets */
+  interestSets: Record<string, string[]>;
 }
 
 export interface AppContextType {
