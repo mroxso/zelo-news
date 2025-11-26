@@ -128,7 +128,7 @@ export function NostrSync() {
     };
 
     syncInterestSetsFromNostr();
-  }, [user, config.interestSetsMetadata.updatedAt, nostr, updateConfig]);
+  }, [user, config.interestSetsMetadata.updatedAt, config.interestSetsMetadata.sets, nostr, updateConfig]);
 
   return null;
 }
