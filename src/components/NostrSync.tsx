@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAppContext } from '@/hooks/useAppContext';
+import { deduplicateInterestSetEvents, getLatestTimestamp, eventsToInterestSetData } from '@/lib/interestSets';
 
 /**
  * NostrSync - Syncs user's Nostr data
@@ -71,35 +72,14 @@ export function NostrSync() {
         );
 
         if (events.length > 0) {
-          // Deduplicate by 'd' tag identifier, keeping only the most recent event
-          const eventsByIdentifier = new Map<string, typeof events[0]>();
-          let latestTimestamp = 0;
-          
-          for (const event of events) {
-            const identifier = event.tags.find(([name]) => name === 'd')?.[1] || '';
-            const existing = eventsByIdentifier.get(identifier);
-            if (!existing || event.created_at > existing.created_at) {
-              eventsByIdentifier.set(identifier, event);
-            }
-            // Track the most recent event timestamp
-            if (event.created_at > latestTimestamp) {
-              latestTimestamp = event.created_at;
-            }
-          }
+          // Use shared utility to deduplicate events by 'd' tag identifier
+          const eventsByIdentifier = deduplicateInterestSetEvents(events);
+          const latestTimestamp = getLatestTimestamp(events);
 
           // Only update if the events are newer than our stored data
           if (latestTimestamp > config.interestSetsMetadata.updatedAt) {
-            // Build interest sets map: identifier -> hashtags array
-            const interestSets: Record<string, string[]> = {};
-            for (const [identifier, event] of eventsByIdentifier) {
-              const hashtags = event.tags
-                .filter(([name]) => name === 't')
-                .map(([, value]) => value);
-              
-              if (hashtags.length > 0) {
-                interestSets[identifier] = hashtags;
-              }
-            }
+            // Convert events to InterestSetData format with full metadata
+            const interestSets = eventsToInterestSetData(eventsByIdentifier);
 
             console.log('Syncing interest sets from Nostr:', interestSets);
             updateConfig((current) => ({

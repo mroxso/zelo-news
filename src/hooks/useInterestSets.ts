@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from './useCurrentUser';
 import type { NostrEvent } from '@nostrify/nostrify';
+import { deduplicateInterestSetEvents, parseInterestSetEvent } from '@/lib/interestSets';
 
 export interface InterestSet {
   id: string;
@@ -13,20 +14,10 @@ export interface InterestSet {
   event: NostrEvent;
 }
 
-function parseInterestSet(event: NostrEvent): InterestSet {
-  const identifier = event.tags.find(([name]) => name === 'd')?.[1] || '';
-  const title = event.tags.find(([name]) => name === 'title')?.[1];
-  const image = event.tags.find(([name]) => name === 'image')?.[1];
-  const description = event.tags.find(([name]) => name === 'description')?.[1];
-  const hashtags = event.tags.filter(([name]) => name === 't').map(([, value]) => value);
-
+function eventToInterestSet(event: NostrEvent): InterestSet {
+  const parsed = parseInterestSetEvent(event);
   return {
-    id: event.id,
-    identifier,
-    title,
-    image,
-    description,
-    hashtags,
+    ...parsed,
     event,
   };
 }
@@ -51,17 +42,11 @@ export function useInterestSets() {
         { signal }
       );
 
-      // Deduplicate by 'd' tag identifier, keeping only the most recent event
-      const eventsByIdentifier = new Map<string, NostrEvent>();
-      for (const event of events) {
-        const identifier = event.tags.find(([name]) => name === 'd')?.[1] || '';
-        const existing = eventsByIdentifier.get(identifier);
-        if (!existing || event.created_at > existing.created_at) {
-          eventsByIdentifier.set(identifier, event);
-        }
-      }
+      // Use shared utility to deduplicate by 'd' tag identifier
+      const eventsByIdentifier = deduplicateInterestSetEvents(events);
       const dedupedEvents = Array.from(eventsByIdentifier.values());
-      return dedupedEvents.map(parseInterestSet).sort((a, b) => {
+      
+      return dedupedEvents.map(eventToInterestSet).sort((a, b) => {
         // Sort by title if available, otherwise by identifier
         const aName = a.title || a.identifier;
         const bName = b.title || b.identifier;

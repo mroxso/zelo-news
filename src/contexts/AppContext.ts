@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import type { InterestSetData } from "@/lib/interestSets";
 
 export type Theme = "dark" | "light" | "system";
 
@@ -10,8 +11,8 @@ export interface RelayMetadata {
 }
 
 export interface InterestSetsMetadata {
-  /** User-defined interest sets mapping identifier to hashtags */
-  sets: Record<string, string[]>;
+  /** User-defined interest sets mapping identifier to full metadata */
+  sets: Record<string, InterestSetData>;
   /** Unix timestamp of when the interest sets were last updated */
   updatedAt: number;
 }

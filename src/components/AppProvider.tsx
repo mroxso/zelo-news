@@ -23,7 +23,12 @@ const RelayMetadataSchema = z.object({
 
 // Zod schema for InterestSetsMetadata validation
 const InterestSetsMetadataSchema = z.object({
-  sets: z.record(z.string(), z.array(z.string())),
+  sets: z.record(z.string(), z.object({
+    hashtags: z.array(z.string()),
+    title: z.string().optional(),
+    image: z.string().optional(),
+    description: z.string().optional(),
+  })),
   updatedAt: z.number(),
 }) satisfies z.ZodType<InterestSetsMetadata>;
 
