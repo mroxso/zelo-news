@@ -117,7 +117,7 @@ export function NostrSync() {
               ...current,
               interestSetsMetadata: {
                 sets: {},
-                updatedAt: Math.floor(Date.now() / 1000),
+                updatedAt: current.interestSetsMetadata.updatedAt,
               },
             }));
           }
