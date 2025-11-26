@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from './useCurrentUser';
+import { useAppContext } from './useAppContext';
 import type { NostrEvent } from '@nostrify/nostrify';
 
 export interface InterestSet {
@@ -31,21 +32,46 @@ function parseInterestSet(event: NostrEvent): InterestSet {
   };
 }
 
+/**
+ * Hook to get interest sets for the current user.
+ * 
+ * This hook uses a two-tier approach:
+ * 1. NostrSync (via AppConfig) is the primary source that syncs interest sets on login.
+ * 2. This hook fetches full event data from Nostr for operations that need it (edit/delete).
+ * 
+ * While AppConfig provides the hashtags and identifiers for interest sets,
+ * fetching the full event data from Nostr is necessary to access additional metadata
+ * such as title, image, and description, which are not stored in AppConfig.
+ * The full event is also required to obtain the event ID for deletion operations.
+ * 
+ * The hook only fetches from Nostr when AppConfig has interest sets data,
+ * ensuring NostrSync remains the authoritative sync mechanism.
+ */
 export function useInterestSets() {
   const { nostr } = useNostr();
   const { user } = useCurrentUser();
+  const { config } = useAppContext();
+  
+  // Get the identifiers from AppConfig (synced by NostrSync)
+  const syncedIdentifiers = Object.keys(config.interestSetsMetadata.sets);
+  const hasSyncedData = syncedIdentifiers.length > 0;
 
   return useQuery({
-    queryKey: ['interest-sets', user?.pubkey],
+    queryKey: ['interest-sets', user?.pubkey, config.interestSetsMetadata.updatedAt],
     queryFn: async (c) => {
       if (!user) return [];
+      
+      // If no synced data in AppConfig, return empty (NostrSync will populate it)
+      if (!hasSyncedData) return [];
 
+      // Fetch full events from Nostr for the identifiers we know exist from NostrSync
       const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]);
       const events = await nostr.query(
         [
           {
             kinds: [30015],
             authors: [user.pubkey],
+            '#d': syncedIdentifiers,
           },
         ],
         { signal }
@@ -60,6 +86,7 @@ export function useInterestSets() {
           eventsByIdentifier.set(identifier, event);
         }
       }
+      
       const dedupedEvents = Array.from(eventsByIdentifier.values());
       return dedupedEvents.map(parseInterestSet).sort((a, b) => {
         // Sort by title if available, otherwise by identifier
@@ -68,7 +95,7 @@ export function useInterestSets() {
         return aName.localeCompare(bName);
       });
     },
-    enabled: !!user,
+    enabled: !!user && hasSyncedData,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }

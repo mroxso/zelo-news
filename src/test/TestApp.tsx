@@ -29,6 +29,10 @@ export function TestApp({ children }: TestAppProps) {
       ],
       updatedAt: 0,
     },
+    interestSetsMetadata: {
+      sets: {},
+      updatedAt: 0,
+    },
   };
 
   return (
