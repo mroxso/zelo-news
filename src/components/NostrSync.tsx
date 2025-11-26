@@ -110,6 +110,17 @@ export function NostrSync() {
               },
             }));
           }
+        } else {
+          // Clear interest sets when none exist
+          if (Object.keys(config.interestSetsMetadata.sets).length > 0) {
+            updateConfig((current) => ({
+              ...current,
+              interestSetsMetadata: {
+                sets: {},
+                updatedAt: Date.now() / 1000,
+              },
+            }));
+          }
         }
       } catch (error) {
         console.error('Failed to sync interest sets from Nostr:', error);
