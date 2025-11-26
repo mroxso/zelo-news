@@ -77,6 +77,7 @@ export function NostrSync() {
           
           for (const event of events) {
             const identifier = event.tags.find(([name]) => name === 'd')?.[1] || '';
+            if (!identifier) continue;
             const existing = eventsByIdentifier.get(identifier);
             if (!existing || event.created_at > existing.created_at) {
               eventsByIdentifier.set(identifier, event);
