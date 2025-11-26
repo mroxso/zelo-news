@@ -67,7 +67,7 @@ export function usePublishInterestSet() {
           interestSetsMetadata: {
             sets: {
               ...currentSets,
-              [params.identifier]: params.hashtags,
+              [params.identifier]: params.hashtags.map(h => h.toLowerCase()),
             },
             updatedAt: Math.floor(Date.now() / 1000),
           },
