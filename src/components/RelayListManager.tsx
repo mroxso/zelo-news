@@ -17,6 +17,27 @@ interface Relay {
   write: boolean;
 }
 
+function RelayStatusIcon({ url }: { url: string }) {
+  const status = useRelayStatus(url);
+
+  const getColorClass = () => {
+    switch (status) {
+      case 'connected':
+        return 'text-green-500';
+      case 'disconnected':
+        return 'text-red-500';
+      case 'connecting':
+        return 'text-muted-foreground animate-pulse';
+      default:
+        return 'text-muted-foreground';
+    }
+  };
+
+  return (
+    <Wifi className={`h-4 w-4 shrink-0 ${getColorClass()}`} />
+  );
+}
+
 export function RelayListManager() {
   const { config, updateConfig } = useAppContext();
   const { user } = useCurrentUser();
@@ -178,27 +199,6 @@ export function RelayListManager() {
     } catch {
       return url;
     }
-  }
-
-  function RelayStatusIcon({ url }: { url: string }) {
-    const status = useRelayStatus(url);
-
-    const getColorClass = () => {
-      switch (status) {
-        case 'connected':
-          return 'text-green-500';
-        case 'disconnected':
-          return 'text-red-500';
-        case 'connecting':
-          return 'text-muted-foreground animate-pulse';
-        default:
-          return 'text-muted-foreground';
-      }
-    };
-
-    return (
-      <Wifi className={`h-4 w-4 shrink-0 ${getColorClass()}`} />
-    );
   }
 
   return (
