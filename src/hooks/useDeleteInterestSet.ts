@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNostr } from '@nostrify/react';
 import { useCurrentUser } from './useCurrentUser';
 import { useToast } from './useToast';
+import { useAppContext } from './useAppContext';
 import type { NostrEvent } from '@nostrify/nostrify';
 
 export function useDeleteInterestSet() {
@@ -9,6 +10,7 @@ export function useDeleteInterestSet() {
   const { user } = useCurrentUser();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { updateConfig } = useAppContext();
 
   return useMutation({
     mutationFn: async (eventToDelete: NostrEvent) => {
@@ -16,13 +18,15 @@ export function useDeleteInterestSet() {
         throw new Error('User must be logged in to delete interest sets');
       }
 
+      const identifier = eventToDelete.tags.find(([name]) => name === 'd')?.[1] || '';
+
       // Create a deletion event (kind 5) that references the event to delete
       const event = await user.signer.signEvent({
         kind: 5,
         content: '',
         tags: [
           ['e', eventToDelete.id],
-          ['a', `${eventToDelete.kind}:${eventToDelete.pubkey}:${eventToDelete.tags.find(([name]) => name === 'd')?.[1] || ''}`],
+          ['a', `${eventToDelete.kind}:${eventToDelete.pubkey}:${identifier}`],
           ['client', 'zelo.news'],
         ],
         created_at: Math.floor(Date.now() / 1000),
@@ -30,9 +34,23 @@ export function useDeleteInterestSet() {
 
       await nostr.event(event, { signal: AbortSignal.timeout(5000) });
 
-      return event;
+      return { event, identifier };
     },
-    onSuccess: () => {
+    onSuccess: ({ identifier }) => {
+      // Update local AppContext to remove the deleted interest set
+      updateConfig((currentConfig) => {
+        const currentSets = { ...(currentConfig.interestSetsMetadata?.sets || {}) };
+        delete currentSets[identifier];
+        
+        return {
+          ...currentConfig,
+          interestSetsMetadata: {
+            sets: currentSets,
+            updatedAt: Math.floor(Date.now() / 1000),
+          },
+        };
+      });
+
       queryClient.invalidateQueries({ queryKey: ['interest-sets'] });
       toast({
         title: 'Success',

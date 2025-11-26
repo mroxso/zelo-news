@@ -117,7 +117,7 @@ export function NostrSync() {
               ...current,
               interestSetsMetadata: {
                 sets: {},
-                updatedAt: Date.now() / 1000,
+                updatedAt: Math.floor(Date.now() / 1000),
               },
             }));
           }
@@ -128,7 +128,8 @@ export function NostrSync() {
     };
 
     syncInterestSetsFromNostr();
-  }, [user, config.interestSetsMetadata.updatedAt, config.interestSetsMetadata.sets, nostr, updateConfig]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally excluding config.interestSetsMetadata.sets to prevent infinite loop
+  }, [user, config.interestSetsMetadata.updatedAt, nostr, updateConfig]);
 
   return null;
 }
