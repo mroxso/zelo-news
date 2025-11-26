@@ -36,8 +36,13 @@ function parseInterestSet(event: NostrEvent): InterestSet {
  * Hook to get interest sets for the current user.
  * 
  * This hook uses a two-tier approach:
- * 1. NostrSync (via AppConfig) is the primary source that syncs interest sets on login
- * 2. This hook fetches full event data from Nostr for operations that need it (edit/delete)
+ * 1. NostrSync (via AppConfig) is the primary source that syncs interest sets on login.
+ * 2. This hook fetches full event data from Nostr for operations that need it (edit/delete).
+ * 
+ * While AppConfig provides the hashtags and identifiers for interest sets,
+ * fetching the full event data from Nostr is necessary to access additional metadata
+ * such as title, image, and description, which are not stored in AppConfig.
+ * The full event is also required to obtain the event ID for deletion operations.
  * 
  * The hook only fetches from Nostr when AppConfig has interest sets data,
  * ensuring NostrSync remains the authoritative sync mechanism.
