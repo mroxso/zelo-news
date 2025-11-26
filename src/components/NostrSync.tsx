@@ -9,6 +9,7 @@ import { useAppContext } from '@/hooks/useAppContext';
  * This component runs globally to sync various Nostr data when the user logs in.
  * Currently syncs:
  * - NIP-65 relay list (kind 10002)
+ * - Interest sets (kind 30015)
  */
 export function NostrSync() {
   const { nostr } = useNostr();
@@ -57,6 +58,77 @@ export function NostrSync() {
 
     syncRelaysFromNostr();
   }, [user, config.relayMetadata.updatedAt, nostr, updateConfig]);
+
+  // Sync interest sets from Nostr
+  useEffect(() => {
+    if (!user) return;
+
+    const syncInterestSetsFromNostr = async () => {
+      try {
+        const events = await nostr.query(
+          [{ kinds: [30015], authors: [user.pubkey] }],
+          { signal: AbortSignal.timeout(5000) }
+        );
+
+        if (events.length > 0) {
+          // Deduplicate by 'd' tag identifier, keeping only the most recent event
+          const eventsByIdentifier = new Map<string, typeof events[0]>();
+          let latestTimestamp = 0;
+          
+          for (const event of events) {
+            const identifier = event.tags.find(([name]) => name === 'd')?.[1] || '';
+            const existing = eventsByIdentifier.get(identifier);
+            if (!existing || event.created_at > existing.created_at) {
+              eventsByIdentifier.set(identifier, event);
+            }
+            // Track the most recent event timestamp
+            if (event.created_at > latestTimestamp) {
+              latestTimestamp = event.created_at;
+            }
+          }
+
+          // Only update if the events are newer than our stored data
+          if (latestTimestamp > config.interestSetsMetadata.updatedAt) {
+            // Build interest sets map: identifier -> hashtags array
+            const interestSets: Record<string, string[]> = {};
+            for (const [identifier, event] of eventsByIdentifier) {
+              const hashtags = event.tags
+                .filter(([name]) => name === 't')
+                .map(([, value]) => value);
+              
+              if (hashtags.length > 0) {
+                interestSets[identifier] = hashtags;
+              }
+            }
+
+            console.log('Syncing interest sets from Nostr:', interestSets);
+            updateConfig((current) => ({
+              ...current,
+              interestSetsMetadata: {
+                sets: interestSets,
+                updatedAt: latestTimestamp,
+              },
+            }));
+          }
+        } else {
+          // Clear interest sets when none exist
+          if (Object.keys(config.interestSetsMetadata.sets).length > 0) {
+            updateConfig((current) => ({
+              ...current,
+              interestSetsMetadata: {
+                sets: {},
+                updatedAt: Date.now() / 1000,
+              },
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to sync interest sets from Nostr:', error);
+      }
+    };
+
+    syncInterestSetsFromNostr();
+  }, [user, config.interestSetsMetadata.updatedAt, config.interestSetsMetadata.sets, nostr, updateConfig]);
 
   return null;
 }

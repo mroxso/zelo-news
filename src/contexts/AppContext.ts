@@ -9,6 +9,13 @@ export interface RelayMetadata {
   updatedAt: number;
 }
 
+export interface InterestSetsMetadata {
+  /** User-defined interest sets mapping identifier to hashtags */
+  sets: Record<string, string[]>;
+  /** Unix timestamp of when the interest sets were last updated */
+  updatedAt: number;
+}
+
 export interface AppConfig {
   /** Current theme */
   theme: Theme;
@@ -16,6 +23,8 @@ export interface AppConfig {
   relayMetadata: RelayMetadata;
   /** Hide latest articles section on home page */
   hideLatestArticles?: boolean;
+  /** Interest sets metadata with timestamp tracking */
+  interestSetsMetadata: InterestSetsMetadata;
 }
 
 export interface AppContextType {
