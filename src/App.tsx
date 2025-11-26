@@ -43,7 +43,10 @@ const defaultConfig: AppConfig = {
     ],
     updatedAt: 0,
   },
-  interestSets: {},
+  interestSetsMetadata: {
+    sets: {},
+    updatedAt: 0,
+  },
 };
 
 const dmConfig: DMConfig = {
