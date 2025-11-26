@@ -54,7 +54,6 @@ export function useInterestSets() {
   
   // Get the identifiers from AppConfig (synced by NostrSync)
   const syncedIdentifiers = Object.keys(config.interestSetsMetadata.sets);
-  const hasSyncedData = syncedIdentifiers.length > 0;
 
   return useQuery({
     queryKey: ['interest-sets', user?.pubkey, config.interestSetsMetadata.updatedAt],
@@ -62,7 +61,7 @@ export function useInterestSets() {
       if (!user) return [];
       
       // If no synced data in AppConfig, return empty (NostrSync will populate it)
-      if (!hasSyncedData) return [];
+      if (syncedIdentifiers.length === 0) return [];
 
       // Fetch full events from Nostr for the identifiers we know exist from NostrSync
       const signal = AbortSignal.any([c.signal, AbortSignal.timeout(3000)]);
@@ -95,7 +94,7 @@ export function useInterestSets() {
         return aName.localeCompare(bName);
       });
     },
-    enabled: !!user && hasSyncedData,
+    enabled: !!user,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 }
