@@ -61,6 +61,7 @@ export function useToggleFollow() {
       // Invalidate following queries to refetch
       queryClient.invalidateQueries({ queryKey: ['following'] });
       queryClient.invalidateQueries({ queryKey: ['following-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['following-count'] });
     },
   });
 }
