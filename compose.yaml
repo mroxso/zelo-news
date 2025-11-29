@@ -1,0 +1,10 @@
+services:
+  zelo:
+    build: 
+      dockerfile: Dockerfile
+    container_name: zelo
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - TZ=Etc/UTC
