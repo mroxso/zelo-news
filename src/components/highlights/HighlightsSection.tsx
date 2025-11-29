@@ -15,7 +15,6 @@ interface HighlightsSectionProps {
 export function HighlightsSection({
   event,
   title = 'Highlights',
-  emptyStateMessage = 'No highlights yet',
   className,
 }: HighlightsSectionProps) {
   const { data: highlights, isLoading } = useHighlights(event);

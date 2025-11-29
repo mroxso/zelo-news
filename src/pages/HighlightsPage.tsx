@@ -1,6 +1,6 @@
 import { useAllHighlights } from '@/hooks/useHighlights';
 import { Highlight } from '@/components/highlights/Highlight';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Highlighter } from 'lucide-react';
 import { RelayListManager } from '@/components/RelayListManager';
