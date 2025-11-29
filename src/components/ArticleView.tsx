@@ -297,7 +297,6 @@ export function ArticleView({ post }: ArticleViewProps) {
           <ClientTag event={post} />
         </div>
 
-        {/* <Separator className="my-8" /> */}
 
         <HighlightsSection event={post} className="mb-8" />
 
