@@ -291,13 +291,13 @@ export function ArticleView({ post }: ArticleViewProps) {
           </Dialog>
         </div>
 
-        <Separator className="my-8" />
+        {/* <Separator className="my-8" /> */}
 
         <div className="mb-8">
           <ClientTag event={post} />
         </div>
 
-        <Separator className="my-8" />
+        {/* <Separator className="my-8" /> */}
 
         <HighlightsSection event={post} className="mb-8" />
 
