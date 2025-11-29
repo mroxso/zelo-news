@@ -302,7 +302,7 @@ export function ProfileView({
                           This user hasn't created any highlights yet.
                         </p>
                       </div>
-                      <RelaySelector className="w-full" />
+                      <RelayListManager />
                     </div>
                   </CardContent>
                 </Card>
