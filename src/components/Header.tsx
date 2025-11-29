@@ -23,23 +23,27 @@ export function Header() {
           {user && (
             <nav className="hidden sm:flex items-center gap-2">
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/following" aria-label="Following">
-                  <Users className="h-4 w-4" />
+                <Link to="/following">
+                  <Users className="h-4 w-4 mr-2" />
+                  Following
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/bookmarks" aria-label="Bookmarks">
-                  <Bookmark className="h-4 w-4" />
+                <Link to="/bookmarks">
+                  <Bookmark className="h-4 w-4 mr-2" />
+                  Bookmarks
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/highlights" aria-label="Highlights">
-                  <Highlighter className="h-4 w-4" />
+                <Link to="/highlights">
+                  <Highlighter className="h-4 w-4 mr-2" />
+                  Highlights
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link to="/create" aria-label="New Post">
-                  <PenSquare className="h-4 w-4" />
+                <Link to="/create">
+                  <PenSquare className="h-4 w-4 mr-2" />
+                  New Post
                 </Link>
               </Button>
             </nav>
