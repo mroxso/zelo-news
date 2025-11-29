@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { LoginArea } from '@/components/auth/LoginArea';
 import { Button } from '@/components/ui/button';
-import { PenSquare, Bookmark, Users, Settings } from 'lucide-react';
+import { PenSquare, Bookmark, Users, Settings, Highlighter } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function Header() {
@@ -23,21 +23,23 @@ export function Header() {
           {user && (
             <nav className="hidden sm:flex items-center gap-2">
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/following">
-                  <Users className="h-4 w-4 mr-2" />
-                  Following
+                <Link to="/following" aria-label="Following">
+                  <Users className="h-4 w-4" />
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <Link to="/bookmarks">
-                  <Bookmark className="h-4 w-4 mr-2" />
-                  Bookmarks
+                <Link to="/bookmarks" aria-label="Bookmarks">
+                  <Bookmark className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/highlights" aria-label="Highlights">
+                  <Highlighter className="h-4 w-4" />
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <Link to="/create">
-                  <PenSquare className="h-4 w-4 mr-2" />
-                  New Post
+                <Link to="/create" aria-label="New Post">
+                  <PenSquare className="h-4 w-4" />
                 </Link>
               </Button>
             </nav>

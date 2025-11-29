@@ -6,6 +6,7 @@ import { useAuthor } from '@/hooks/useAuthor';
 import { useReactions, useReact } from '@/hooks/useReactions';
 import { MarkdownContent } from '@/components/MarkdownContent';
 import { CommentsSection } from '@/components/comments/CommentsSection';
+import { HighlightsSection } from '@/components/highlights/HighlightsSection';
 import { ZapButton } from '@/components/ZapButton';
 import { BookmarkButton } from '@/components/BookmarkButton';
 import { ReadingTime } from '@/components/ReadingTime';
@@ -290,11 +291,14 @@ export function ArticleView({ post }: ArticleViewProps) {
           </Dialog>
         </div>
 
-        <Separator className="my-8" />
+        {/* <Separator className="my-8" /> */}
 
         <div className="mb-8">
           <ClientTag event={post} />
         </div>
+
+
+        <HighlightsSection event={post} className="mb-8" />
 
         <CommentsSection root={post} />
       </article>

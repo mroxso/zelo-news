@@ -7,10 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link2, Copy, Check, Bookmark, BadgeCheck, Zap } from 'lucide-react';
+import { Link2, Copy, Check, Bookmark, BadgeCheck, Zap, Highlighter, FileText } from 'lucide-react';
 import { genUserName } from '@/lib/genUserName';
 import { RelayListManager } from '@/components/RelayListManager';
 import { ArticlePreview } from '@/components/ArticlePreview';
+import { Highlight } from '@/components/highlights/Highlight';
 import { FollowButton } from '@/components/FollowButton';
 import { useToast } from '@/hooks/useToast';
 
@@ -19,8 +20,10 @@ interface ProfileViewProps {
   metadata?: NostrMetadata;
   posts?: NostrEvent[];
   bookmarkedArticles?: NostrEvent[];
+  highlights?: NostrEvent[];
   postsLoading?: boolean;
   bookmarksLoading?: boolean;
+  highlightsLoading?: boolean;
 }
 
 export function ProfileView({
@@ -28,8 +31,10 @@ export function ProfileView({
   metadata,
   posts,
   bookmarkedArticles,
+  highlights,
   postsLoading = false,
   bookmarksLoading = false,
+  highlightsLoading = false,
 }: ProfileViewProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -161,20 +166,27 @@ export function ProfileView({
         <div className="mt-8 px-4 md:px-0">
           <Tabs defaultValue="articles" className="w-full">
             <TabsList className="w-full md:w-auto">
-              <TabsTrigger value="articles" className="flex-1 md:flex-initial">
-                Published Articles
+              <TabsTrigger value="articles" className="flex-1 md:flex-initial" aria-label="Published Articles">
+                <FileText className="h-4 w-4" />
                 {posts && posts.length > 0 && (
                   <Badge variant="secondary" className="ml-2 text-xs">
                     {posts.length}
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="bookmarks" className="flex-1 md:flex-initial">
-                <Bookmark className="h-4 w-4 mr-2" />
-                Bookmarks
+              <TabsTrigger value="bookmarks" className="flex-1 md:flex-initial" aria-label="Bookmarks">
+                <Bookmark className="h-4 w-4" />
                 {bookmarkedArticles && bookmarkedArticles.length > 0 && (
                   <Badge variant="secondary" className="ml-2 text-xs">
                     {bookmarkedArticles.length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="highlights" className="flex-1 md:flex-initial" aria-label="Highlights">
+                <Highlighter className="h-4 w-4" />
+                {highlights && highlights.length > 0 && (
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    {highlights.length}
                   </Badge>
                 )}
               </TabsTrigger>
@@ -243,6 +255,51 @@ export function ProfileView({
                         <h3 className="text-xl font-semibold">No Bookmarks</h3>
                         <p className="text-muted-foreground">
                           This user hasn't bookmarked any articles yet.
+                        </p>
+                      </div>
+                      <RelayListManager />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Highlights Tab */}
+            <TabsContent value="highlights" className="space-y-6">
+              {highlightsLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="border-l-4 border-l-yellow-500/50">
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                            <div className="space-y-1 flex-1">
+                              <Skeleton className="h-4 w-24" />
+                              <Skeleton className="h-3 w-16" />
+                            </div>
+                          </div>
+                          <Skeleton className="h-16 w-full" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : highlights && highlights.length > 0 ? (
+                <div className="space-y-4">
+                  {highlights.map((highlight) => (
+                    <Highlight key={highlight.id} highlight={highlight} />
+                  ))}
+                </div>
+              ) : (
+                <Card className="border-dashed">
+                  <CardContent className="py-12 px-8 text-center">
+                    <div className="max-w-sm mx-auto space-y-6">
+                      <Highlighter className="h-16 w-16 mx-auto text-muted-foreground" />
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-semibold">No Highlights</h3>
+                        <p className="text-muted-foreground">
+                          This user hasn't created any highlights yet.
                         </p>
                       </div>
                       <RelayListManager />
