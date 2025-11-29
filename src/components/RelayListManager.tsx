@@ -9,11 +9,33 @@ import { useAppContext } from '@/hooks/useAppContext';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useToast } from '@/hooks/useToast';
+import { useRelayStatus } from '@/hooks/useRelayStatus';
 
 interface Relay {
   url: string;
   read: boolean;
   write: boolean;
+}
+
+function RelayStatusIcon({ url }: { url: string }) {
+  const status = useRelayStatus(url);
+
+  const getColorClass = () => {
+    switch (status) {
+      case 'connected':
+        return 'text-green-500';
+      case 'disconnected':
+        return 'text-red-500';
+      case 'connecting':
+        return 'text-muted-foreground animate-pulse';
+      default:
+        return 'text-muted-foreground';
+    }
+  };
+
+  return (
+    <Wifi className={`h-4 w-4 shrink-0 ${getColorClass()}`} />
+  );
 }
 
 export function RelayListManager() {
@@ -188,7 +210,7 @@ export function RelayListManager() {
             key={relay.url}
             className="flex items-center gap-3 p-3 rounded-md border bg-muted/20"
           >
-            <Wifi className="h-4 w-4 text-muted-foreground shrink-0" />
+            <RelayStatusIcon url={relay.url} />
             <span className="font-mono text-sm flex-1 truncate" title={relay.url}>
               {renderRelayUrl(relay.url)}
             </span>
