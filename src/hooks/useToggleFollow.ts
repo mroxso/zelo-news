@@ -57,10 +57,16 @@ export function useToggleFollow() {
 
       return { event, isFollowing: !isFollowing };
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       // Invalidate following queries to refetch
       queryClient.invalidateQueries({ queryKey: ['following'] });
       queryClient.invalidateQueries({ queryKey: ['following-posts'] });
+      // Invalidate the target user's follower count
+      queryClient.invalidateQueries({ queryKey: ['follower-count', variables.pubkey] });
+      // Invalidate the current user's following count
+      if (user) {
+        queryClient.invalidateQueries({ queryKey: ['following-count', user.pubkey] });
+      }
     },
   });
 }
