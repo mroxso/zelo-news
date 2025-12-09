@@ -34,8 +34,6 @@ function validateBlogPost(event: NostrEvent): event is BlogPost {
   return true;
 }
 
-const INITIAL_POSTS_COUNT = 3;
-
 export function LatestInHashtag({ hashtags, icon, title }: LatestInHashtagProps) {
   const navigate = useNavigate();
   const { nostr } = useNostr();
@@ -111,8 +109,10 @@ export function LatestInHashtag({ hashtags, icon, title }: LatestInHashtagProps)
     return null;
   }
   
-  const visiblePosts = posts.slice(0, INITIAL_POSTS_COUNT);
-  const hasMore = posts.length > INITIAL_POSTS_COUNT;
+  const visiblePosts = posts.slice(0, 4);
+  const hasMore = posts.length > 4;
+  const featuredPost = visiblePosts[0];
+  const gridPosts = visiblePosts.slice(1, 4);
 
   return (
     <div className="space-y-6">
@@ -143,12 +143,21 @@ export function LatestInHashtag({ hashtags, icon, title }: LatestInHashtagProps)
         )}
       </div>
 
-      {/* Posts Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {visiblePosts.map((post) => (
-          <ArticlePreview key={post.id} post={post} />
-        ))}
-      </div>
+      {/* Featured Post - Full Width */}
+      {featuredPost && (
+        <div className="w-full">
+          <ArticlePreview key={featuredPost.id} post={featuredPost} featured />
+        </div>
+      )}
+
+      {/* Posts Grid - 3 articles */}
+      {gridPosts.length > 0 && (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {gridPosts.map((post) => (
+            <ArticlePreview key={post.id} post={post} />
+          ))}
+        </div>
+      )}
 
     </div>
   );

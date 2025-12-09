@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { Card, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Newspaper, ChevronDown } from 'lucide-react';
+import { Newspaper } from 'lucide-react';
 import { useLongFormContentNotes } from '@/hooks/useLongFormContentNotes';
 import { ArticlePreview } from '@/components/ArticlePreview';
 
-const INITIAL_POSTS_COUNT = 3;
-const LOAD_MORE_COUNT = 6;
+const INITIAL_POSTS_COUNT = 4;
+// const LOAD_MORE_COUNT = 6;
 
 export function LatestArticles() {
-  const [visibleCount, setVisibleCount] = useState(INITIAL_POSTS_COUNT);
+  const [visibleCount] = useState(INITIAL_POSTS_COUNT);
   const { data: posts, isLoading } = useLongFormContentNotes();
   
   // Loading state
@@ -45,11 +44,13 @@ export function LatestArticles() {
   }
   
   const visiblePosts = posts.slice(0, visibleCount);
-  const hasMore = visibleCount < posts.length;
+  // const hasMore = visibleCount < posts.length;
+  const featuredPost = visiblePosts[0];
+  const gridPosts = visiblePosts.slice(1, 4);
 
-  const handleLoadMore = () => {
-    setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, posts.length));
-  };
+  // const handleLoadMore = () => {
+  //   setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, posts.length));
+  // };
 
   return (
     <div className="space-y-6">
@@ -64,15 +65,24 @@ export function LatestArticles() {
         </div>
       </div>
 
-      {/* Posts Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {visiblePosts.map((post) => (
-          <ArticlePreview key={post.id} post={post} />
-        ))}
-      </div>
+      {/* Featured Post - Full Width */}
+      {featuredPost && (
+        <div className="w-full">
+          <ArticlePreview key={featuredPost.id} post={featuredPost} featured />
+        </div>
+      )}
+
+      {/* Posts Grid - 3 articles */}
+      {gridPosts.length > 0 && (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {gridPosts.map((post) => (
+            <ArticlePreview key={post.id} post={post} />
+          ))}
+        </div>
+      )}
 
       {/* Load More Button */}
-      {hasMore && (
+      {/* {hasMore && (
         <div className="flex justify-center pt-4">
           <Button
             onClick={handleLoadMore}
@@ -87,7 +97,7 @@ export function LatestArticles() {
             </span>
           </Button>
         </div>
-      )}
+      )} */}
     </div>
   );
 }

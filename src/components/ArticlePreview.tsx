@@ -13,9 +13,10 @@ interface ArticlePreviewProps {
   post: NostrEvent;
   variant?: 'default' | 'compact';
   showAuthor?: boolean;
+  featured?: boolean;
 }
 
-export function ArticlePreview({ post, variant = 'default', showAuthor = true }: ArticlePreviewProps) {
+export function ArticlePreview({ post, variant = 'default', showAuthor = true, featured = false }: ArticlePreviewProps) {
   const { data: author } = useAuthor(post.pubkey);
   const metadata = author?.metadata;
 
@@ -43,14 +44,86 @@ export function ArticlePreview({ post, variant = 'default', showAuthor = true }:
   const avatarUrl = metadata?.picture;
 
   const isCompact = variant === 'compact';
-  const titleSize = isCompact ? 'text-lg' : 'text-xl sm:text-2xl';
-  const summaryLines = isCompact ? 'line-clamp-2' : 'line-clamp-3';
+  const titleSize = featured 
+    ? 'text-3xl sm:text-4xl' 
+    : isCompact 
+      ? 'text-lg' 
+      : 'text-xl sm:text-2xl';
+  const summaryLines = featured 
+    ? 'line-clamp-4' 
+    : isCompact 
+      ? 'line-clamp-2' 
+      : 'line-clamp-3';
   const dateFormat = isCompact
     ? { month: 'short', day: 'numeric', year: 'numeric' }
     : { year: 'numeric', month: 'long', day: 'numeric' };
 
   const valid = isValidDate(date);
 
+  // Featured layout - horizontal card with image on left
+  if (featured) {
+    return (
+      <Link to={`/${naddr}`}>
+        <Card className="overflow-hidden hover:shadow-xl transition-shadow">
+          <div className="grid md:grid-cols-2 gap-0">
+            {image && (
+              <div className="aspect-video md:aspect-auto overflow-hidden bg-muted">
+                <img
+                  src={image}
+                  alt={title}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            )}
+            <div className={`flex flex-col ${!image ? 'md:col-span-2' : ''}`}>
+              <CardHeader className="flex-1">
+                <h3 className={`${titleSize} font-bold line-clamp-2 mb-3`}>
+                  {title}
+                </h3>
+                {summary && (
+                  <p className={`text-muted-foreground ${summaryLines} text-base`}>
+                    {summary}
+                  </p>
+                )}
+              </CardHeader>
+              <CardContent className="pt-0">
+                {valid && (
+                  <div className={`flex items-center gap-2 text-sm text-muted-foreground ${showAuthor || hashtags.length > 0 ? 'mb-3' : ''}`}>
+                    <Calendar className="h-4 w-4" />
+                    <time dateTime={toISOStringSafe(date)}>
+                      {date.toLocaleDateString('en-US', dateFormat as Intl.DateTimeFormatOptions)}
+                    </time>
+                  </div>
+                )}
+                {showAuthor && (
+                  <div className={`flex items-center gap-2 ${hashtags.length > 0 ? 'mb-3' : ''}`}>
+                    <Avatar className="h-7 w-7">
+                      <AvatarImage src={avatarUrl} alt={displayName} />
+                      <AvatarFallback className="text-xs">
+                        {displayName.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium truncate">{displayName}</span>
+                  </div>
+                )}
+                {hashtags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {hashtags.map((tag: string) => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        #{tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </div>
+          </div>
+        </Card>
+      </Link>
+    );
+  }
+
+  // Default layout - vertical card
   return (
     <Link to={`/${naddr}`}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
