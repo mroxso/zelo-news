@@ -4,9 +4,12 @@ import type { NostrEvent } from '@nostrify/nostrify';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useAuthor } from '@/hooks/useAuthor';
 import { useReactions, useReact } from '@/hooks/useReactions';
+import { useTranslationJob } from '@/hooks/useTranslationJob';
 import { MarkdownContent } from '@/components/MarkdownContent';
 import { CommentsSection } from '@/components/comments/CommentsSection';
 import { HighlightsSection } from '@/components/highlights/HighlightsSection';
+import { TranslationBanner } from '@/components/TranslationBanner';
+import { TranslationResults } from '@/components/TranslationResults';
 import { ZapButton } from '@/components/ZapButton';
 import { BookmarkButton } from '@/components/BookmarkButton';
 import { ReadingTime } from '@/components/ReadingTime';
@@ -45,6 +48,7 @@ export function ArticleView({ post }: ArticleViewProps) {
   const author = useAuthor(post.pubkey);
   const { data: reactions } = useReactions(post.id, post.pubkey);
   const { mutate: react } = useReact();
+  const { mutate: requestTranslation, isPending: isTranslating } = useTranslationJob();
 
   const metadata = author.data?.metadata;
   const displayName = metadata?.display_name || metadata?.name || genUserName(post.pubkey);
@@ -109,6 +113,31 @@ export function ArticleView({ post }: ArticleViewProps) {
         variant: "destructive",
       });
     }
+  };
+
+  const handleTranslate = (dvmPubkey: string, language: string) => {
+    requestTranslation(
+      {
+        eventId: post.id,
+        language,
+        dvmPubkey,
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Translation requested",
+            description: `Your translation to ${language} has been requested. Results will appear below.`,
+          });
+        },
+        onError: () => {
+          toast({
+            title: "Failed to request translation",
+            description: "Could not send translation request",
+            variant: "destructive",
+          });
+        },
+      }
+    );
   };
 
   const validDate = isValidDate(date);
@@ -206,6 +235,22 @@ export function ArticleView({ post }: ArticleViewProps) {
         <div className="mb-12">
           <MarkdownContent content={post.content} />
         </div>
+
+        <Separator className="my-8" />
+
+        {/* Translation Banner - only show if user is logged in */}
+        {user && (
+          <>
+            <TranslationBanner
+              eventId={post.id}
+              onTranslate={handleTranslate}
+            />
+            <Separator className="my-8" />
+          </>
+        )}
+
+        {/* Display existing translations */}
+        <TranslationResults eventId={post.id} />
 
         <Separator className="my-8" />
 
