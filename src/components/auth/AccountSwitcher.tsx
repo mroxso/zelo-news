@@ -1,7 +1,7 @@
 // NOTE: This file is stable and usually should not be modified.
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
-import { ChevronDown, LogOut, UserIcon, UserPlus, Wallet } from 'lucide-react';
+import { ChevronDown, LogOut, Settings, UserIcon, UserPlus, Wallet } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu.tsx';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar.tsx';
+import { ProfileSettingsModal } from '@/components/ProfileSettingsModal';
 import { WalletModal } from '@/components/WalletModal';
 import { useLoggedInAccounts, type Account } from '@/hooks/useLoggedInAccounts';
 import { genUserName } from '@/lib/genUserName';
@@ -77,6 +78,15 @@ export function AccountSwitcher({ onAddAccountClick }: AccountSwitcherProps) {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
+        <ProfileSettingsModal>
+          <DropdownMenuItem
+            className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
+            onSelect={(e) => e.preventDefault()}
+          >
+            <Settings className='w-4 h-4' />
+            <span>Profile Settings</span>
+          </DropdownMenuItem>
+        </ProfileSettingsModal>
         <WalletModal>
           <DropdownMenuItem
             className='flex items-center gap-2 cursor-pointer p-2 rounded-md'
