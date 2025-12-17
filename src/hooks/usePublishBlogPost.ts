@@ -47,7 +47,7 @@ export function usePublishBlogPost() {
 
       if (data.hashtags && data.hashtags.length > 0) {
         data.hashtags.forEach(tag => {
-          tags.push(['t', tag]);
+          tags.push(['t', tag.toLowerCase()]);
         });
       }
 
