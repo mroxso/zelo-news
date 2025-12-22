@@ -39,7 +39,7 @@ export function useBlogPostsByHashtag(hashtag: string, limit: number = 20) {
         until?: number;
       } = { 
         kinds: [30023], 
-        '#t': [hashtag.toLowerCase()],
+        '#t': [hashtag],
         limit: limit 
       };
       
