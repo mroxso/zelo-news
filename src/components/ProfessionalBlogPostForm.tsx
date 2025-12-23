@@ -14,8 +14,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Loader2, Upload, Image as ImageIcon, FileText, Hash, Calendar } from 'lucide-react';
+import { AlertCircle, Loader2, Upload, Image as ImageIcon, FileText, Hash, Calendar, Wifi } from 'lucide-react';
 import { Editor } from '@/components/blocks/editor-00/editor';
+import { RelayListManager } from '@/components/RelayListManager';
 
 interface ProfessionalBlogPostFormProps {
   /** Existing post identifier for editing (optional) */
@@ -64,6 +65,7 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
     hashtags: '',
   });
   const [showMetadata, setShowMetadata] = useState(true);
+  const [showRelays, setShowRelays] = useState(false);
 
   // Load existing post data when editing
   useEffect(() => {
@@ -427,6 +429,29 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
                 </div>
               </div>
             )}
+          </CardContent>
+        )}
+      </Card>
+
+      {/* Relay Settings Section */}
+      <Card>
+        <CardHeader className="cursor-pointer" onClick={() => setShowRelays(!showRelays)}>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Wifi className="h-5 w-5" />
+              Publishing Relays
+            </CardTitle>
+            <Button variant="ghost" size="sm">
+              {showRelays ? 'Hide' : 'Show'}
+            </Button>
+          </div>
+        </CardHeader>
+        {showRelays && (
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Manage the relays where your article will be published. Articles are sent to all write-enabled relays.
+            </p>
+            <RelayListManager />
           </CardContent>
         )}
       </Card>
