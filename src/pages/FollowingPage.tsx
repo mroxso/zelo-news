@@ -1,6 +1,7 @@
 import { useSeoMeta } from '@unhead/react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useFollowingBlogPosts } from '@/hooks/useFollowingBlogPosts';
+import { useFollowing } from '@/hooks/useFollowing';
 import { ArticlePreview } from '@/components/ArticlePreview';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,7 +11,11 @@ import { LoginArea } from '@/components/auth/LoginArea';
 
 export default function FollowingPage() {
   const { user } = useCurrentUser();
-  const { data: posts = [], isLoading, isError } = useFollowingBlogPosts();
+  const { isLoading: isLoadingFollowing, isError: isFollowingError } = useFollowing();
+  const { data: posts = [], isLoading: isLoadingPosts, isError: isPostsError } = useFollowingBlogPosts();
+
+  const isLoading = isLoadingFollowing || isLoadingPosts;
+  const isError = isFollowingError || isPostsError;
 
   useSeoMeta({
     title: 'Following - zelo.news',
