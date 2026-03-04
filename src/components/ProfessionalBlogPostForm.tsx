@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { nip19 } from 'nostr-tools';
-import { SerializedEditorState } from 'lexical';
+import { $convertToMarkdownString, TRANSFORMERS } from '@lexical/markdown';
+import { EditorState, SerializedEditorState } from 'lexical';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePublishBlogPost } from '@/hooks/usePublishBlogPost';
 import { useLongFormContentNote } from '@/hooks/useLongFormContentNote';
@@ -55,7 +56,8 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
     editIdentifier || ''
   );
 
-  const [editorState, setEditorState] = useState<SerializedEditorState>(initialEditorState);
+  const [editorSerializedState, setEditorSerializedState] = useState<SerializedEditorState>(initialEditorState);
+  const [markdownContent, setMarkdownContent] = useState('');
   const [metadata, setMetadata] = useState({
     identifier: '',
     title: '',
@@ -67,66 +69,26 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
 
   // Load existing post data when editing
   useEffect(() => {
-    if (existingPost && editIdentifier) {
-      const d = existingPost.tags.find(([name]) => name === 'd')?.[1] || '';
-      const title = existingPost.tags.find(([name]) => name === 'title')?.[1] || '';
-      const summary = existingPost.tags.find(([name]) => name === 'summary')?.[1] || '';
-      const image = existingPost.tags.find(([name]) => name === 'image')?.[1] || '';
-      const hashtags = existingPost.tags
-        .filter(([name]) => name === 't')
-        .map(([, value]) => value)
-        .join(', ');
+    if (!existingPost || !editIdentifier) return;
 
-      setMetadata({
-        identifier: d,
-        title,
-        summary,
-        image,
-        hashtags,
-      });
+    const d = existingPost.tags.find(([name]) => name === 'd')?.[1] || '';
+    const title = existingPost.tags.find(([name]) => name === 'title')?.[1] || '';
+    const summary = existingPost.tags.find(([name]) => name === 'summary')?.[1] || '';
+    const image = existingPost.tags.find(([name]) => name === 'image')?.[1] || '';
+    const hashtags = existingPost.tags
+      .filter(([name]) => name === 't')
+      .map(([, value]) => value)
+      .join(', ');
 
-      // Convert markdown content to editor state
-      // We'll use a simple approach - the editor will handle the markdown
-      // For now, we'll just set it as the initial state
-      if (existingPost.content) {
-        try {
-          // Create a simple editor state with the markdown content as text
-          // The Lexical markdown plugin should handle conversion
-          const contentState = {
-            root: {
-              children: [
-                {
-                  children: [
-                    {
-                      detail: 0,
-                      format: 0,
-                      mode: "normal",
-                      style: "",
-                      text: existingPost.content,
-                      type: "text",
-                      version: 1,
-                    },
-                  ],
-                  direction: "ltr",
-                  format: "",
-                  indent: 0,
-                  type: "paragraph",
-                  version: 1,
-                },
-              ],
-              direction: "ltr",
-              format: "",
-              indent: 0,
-              type: "root",
-              version: 1,
-            },
-          } as unknown as SerializedEditorState;
-          setEditorState(contentState);
-        } catch (error) {
-          console.error('Failed to parse existing content:', error);
-        }
-      }
-    }
+    setMetadata({
+      identifier: d,
+      title,
+      summary,
+      image,
+      hashtags,
+    });
+
+    setMarkdownContent(existingPost.content || '');
   }, [existingPost, editIdentifier]);
 
   const handleMetadataChange = (field: keyof typeof metadata, value: string) => {
@@ -145,30 +107,11 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
     }
   };
 
-  const getMarkdownFromEditor = (): string => {
-    // Extract text content from the editor state
-    // In a full implementation, you'd use $convertToMarkdownString with proper transformers
-    try {
-      interface EditorNode {
-        children?: Array<{ text?: string }>;
-      }
-      
-      const root = editorState.root as { children?: EditorNode[] };
-      const content = (root.children || [])
-        .map((child: EditorNode) => {
-          if (child.children && Array.isArray(child.children)) {
-            return child.children
-              .map((textNode) => textNode.text || '')
-              .join('');
-          }
-          return '';
-        })
-        .join('\n\n');
-      return content;
-    } catch (error) {
-      console.error('Failed to extract markdown:', error);
-      return '';
-    }
+  const handleEditorChange = (nextEditorState: EditorState) => {
+    nextEditorState.read(() => {
+      const markdown = $convertToMarkdownString(TRANSFORMERS);
+      setMarkdownContent(markdown);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -184,8 +127,6 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
       return;
     }
 
-    const markdownContent = getMarkdownFromEditor();
-    
     if (!markdownContent.trim()) {
       alert('Please write some content for your post');
       return;
@@ -439,8 +380,11 @@ export function ProfessionalBlogPostForm({ editIdentifier }: ProfessionalBlogPos
         <CardContent>
           <div >
             <Editor
-              editorSerializedState={editorState}
-              onSerializedChange={(value) => setEditorState(value)}
+              key={editIdentifier ? `edit-${editIdentifier}-${existingPost?.id ?? 'loading'}` : 'create-post-editor'}
+              editorSerializedState={editorSerializedState}
+              initialMarkdown={editIdentifier ? existingPost?.content || '' : undefined}
+              onChange={handleEditorChange}
+              onSerializedChange={(value) => setEditorSerializedState(value)}
             />
           </div>
           <p className="text-xs text-muted-foreground mt-4">

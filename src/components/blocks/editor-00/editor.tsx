@@ -6,6 +6,7 @@ import {
 } from "@lexical/react/LexicalComposer"
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin"
 import { EditorState, SerializedEditorState } from "lexical"
+import { $convertFromMarkdownString, TRANSFORMERS } from "@lexical/markdown"
 
 import { editorTheme } from "@/components/editor/themes/editor-theme"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -25,22 +26,33 @@ const editorConfig: InitialConfigType = {
 export function Editor({
   editorState,
   editorSerializedState,
+  initialMarkdown,
   onChange,
   onSerializedChange,
 }: {
   editorState?: EditorState
   editorSerializedState?: SerializedEditorState
+  initialMarkdown?: string
   onChange?: (editorState: EditorState) => void
   onSerializedChange?: (editorSerializedState: SerializedEditorState) => void
 }) {
+  const resolvedInitialEditorState = editorState
+    ? editorState
+    : initialMarkdown !== undefined
+      ? () => {
+          $convertFromMarkdownString(initialMarkdown, TRANSFORMERS)
+        }
+      : editorSerializedState
+        ? JSON.stringify(editorSerializedState)
+        : undefined
+
   return (
     <div className="bg-background overflow-hidden rounded-lg border shadow">
       <LexicalComposer
         initialConfig={{
           ...editorConfig,
-          ...(editorState ? { editorState } : {}),
-          ...(editorSerializedState
-            ? { editorState: JSON.stringify(editorSerializedState) }
+          ...(resolvedInitialEditorState
+            ? { editorState: resolvedInitialEditorState }
             : {}),
         }}
       >
