@@ -2,35 +2,26 @@
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Download, Key, UserPlus, FileText, Shield, User, Sparkles, LogIn, CheckCircle, Upload, Globe } from 'lucide-react';
+import { Download, Upload, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/hooks/useToast';
 import { useLoginActions } from '@/hooks/useLoginActions';
 import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { useUploadFile } from '@/hooks/useUploadFile';
-import { generateSecretKey, nip19 } from 'nostr-tools';
-import { cn } from '@/lib/utils';
+import { generateSecretKey, getPublicKey, nip19 } from 'nostr-tools';
 
 interface SignupDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete?: () => void;
 }
 
-const sanitizeFilename = (filename: string) => {
-  return filename.replace(/[^a-z0-9_.-]/gi, '_');
-}
-
-const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete }) => {
-  const [step, setStep] = useState<'welcome' | 'generate' | 'download' | 'profile' | 'done'>('welcome');
-  const [isLoading, setIsLoading] = useState(false);
+const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose }) => {
+  const [step, setStep] = useState<'generate' | 'download' | 'profile'>('generate');
   const [nsec, setNsec] = useState('');
-  const [showSparkles, setShowSparkles] = useState(false);
-  const [keySecured, setKeySecured] = useState<'none' | 'downloaded'>('none');
+  const [showKey, setShowKey] = useState(false);
   const [profileData, setProfileData] = useState({
     name: '',
     about: '',
@@ -43,34 +34,9 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
 
   // Generate a proper nsec key using nostr-tools
   const generateKey = () => {
-    setIsLoading(true);
-    setShowSparkles(true);
-
-    // Add a dramatic pause for the key generation effect
-    setTimeout(() => {
-      try {
-        // Generate a new secret key
-        const sk = generateSecretKey();
-
-        // Convert to nsec format
-        setNsec(nip19.nsecEncode(sk));
-        setStep('download');
-
-        toast({
-          title: 'Your Secret Key is Ready!',
-          description: 'A new secret key has been generated for you.',
-        });
-      } catch {
-        toast({
-          title: 'Error',
-          description: 'Failed to generate key. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-        setShowSparkles(false);
-      }
-    }, 2000);
+    const sk = generateSecretKey();
+    setNsec(nip19.nsecEncode(sk));
+    setStep('download');
   };
 
   const downloadKey = () => {
@@ -79,8 +45,14 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
       const blob = new Blob([nsec], { type: 'text/plain; charset=utf-8' });
       const url = globalThis.URL.createObjectURL(blob);
 
-      // Sanitize filename
-      const filename = sanitizeFilename('nostr-nsec-key.txt');
+      const decoded = nip19.decode(nsec);
+      if (decoded.type !== 'nsec') {
+        throw new Error('Invalid nsec key');
+      }
+
+      const pubkey = getPublicKey(decoded.data);
+      const npub = nip19.npubEncode(pubkey);
+      const filename = `nostr-${location.hostname.replaceAll(/\./g, '-')}-${npub.slice(5, 9)}.nsec.txt`;
 
       // Create a temporary link element and trigger download
       const a = document.createElement('a');
@@ -94,32 +66,13 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
       globalThis.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      // Mark as secured
-      setKeySecured('downloaded');
-
-      toast({
-        title: 'Secret Key Saved!',
-        description: 'Your key has been safely stored.',
-      });
-    } catch {
-      toast({
-        title: 'Download failed',
-        description: 'Could not download the key file. Please copy it manually.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-
-
-  const finishKeySetup = () => {
-    try {
+      // Continue to profile step
       login.nsec(nsec);
       setStep('profile');
     } catch {
       toast({
-        title: 'Login Failed',
-        description: 'Failed to login with the generated key. Please try again.',
+        title: 'Download failed',
+        description: 'Could not download the key file. Please copy it manually.',
         variant: 'destructive',
       });
     }
@@ -158,10 +111,6 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
       const url = tags[0]?.[1];
       if (url) {
         setProfileData(prev => ({ ...prev, picture: url }));
-        toast({
-          title: 'Avatar uploaded!',
-          description: 'Your avatar has been uploaded successfully.',
-        });
       }
     } catch {
       toast({
@@ -173,9 +122,6 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
   };
 
   const finishSignup = async (skipProfile = false) => {
-    // Mark signup completion time for fallback welcome modal
-    localStorage.setItem('signup_completed', Date.now().toString());
-
     try {
       // Publish profile if user provided information
       if (!skipProfile && (profileData.name || profileData.about || profileData.picture)) {
@@ -188,30 +134,6 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
           kind: 0,
           content: JSON.stringify(metadata),
         });
-
-        toast({
-          title: 'Profile Created!',
-          description: 'Your profile has been set up.',
-        });
-      }
-
-      // Close signup and show welcome modal
-      onClose();
-      if (onComplete) {
-        // Add a longer delay to ensure login state has fully propagated
-        setTimeout(() => {
-          onComplete();
-        }, 600);
-      } else {
-        // Fallback for when used without onComplete
-        setStep('done');
-        setTimeout(() => {
-          onClose();
-          toast({
-            title: 'Welcome!',
-            description: 'Your account is ready.',
-          });
-        }, 3000);
       }
     } catch {
       toast({
@@ -219,372 +141,111 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
         description: 'Your account was created but profile setup failed. You can update it later.',
         variant: 'destructive',
       });
-
-      // Still proceed to completion even if profile failed
+    } finally {
       onClose();
-      if (onComplete) {
-        // Add a longer delay to ensure login state has fully propagated
-        setTimeout(() => {
-          onComplete();
-        }, 600);
-      } else {
-        // Fallback for when used without onComplete
-        setStep('done');
-        setTimeout(() => {
-          onClose();
-          toast({
-            title: 'Welcome!',
-            description: 'Your account is ready.',
-          });
-        }, 3000);
-      }
     }
   };
 
   const getTitle = () => {
-    if (step === 'welcome') return (
-      <span className="flex items-center justify-center gap-2">
-        Create Your Account
-      </span>
-    );
-    if (step === 'generate') return (
-      <span className="flex items-center justify-center gap-2">
-        Generating Your Key
-      </span>
-    );
-    if (step === 'download') return (
-      <span className="flex items-center justify-center gap-2">
-        Secret Key
-      </span>
-    );
-    if (step === 'profile') return (
-      <span className="flex items-center justify-center gap-2">
-        Create Your Profile
-      </span>
-    );
-    return (
-      <span className="flex items-center justify-center gap-2">
-        Welcome!
-      </span>
-    );
+    if (step === 'generate') return 'Sign up';
+    if (step === 'download') return 'Secret Key';
+    if (step === 'profile') return 'Create Your Profile';
   };
 
   // Reset state when dialog opens
   useEffect(() => {
     if (isOpen) {
-      setStep('welcome');
-      setIsLoading(false);
+      setStep('generate');
       setNsec('');
-      setShowSparkles(false);
-      setKeySecured('none');
+      setShowKey(false);
       setProfileData({ name: '', about: '', picture: '' });
     }
   }, [isOpen]);
 
-  // Add sparkle animation effect
-  useEffect(() => {
-    if (showSparkles) {
-      const interval = setInterval(() => {
-        // This will trigger re-renders for sparkle animation
-      }, 100);
-      return () => clearInterval(interval);
-    }
-  }, [showSparkles]);
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
-        className={cn("max-w-[95vw] sm:max-w-md max-h-[90vh] max-h-[90dvh] p-0 overflow-hidden rounded-2xl flex flex-col")}
-      >
-        <DialogHeader className={cn('px-6 pt-6 pb-1 relative flex-shrink-0')}>
-          <DialogTitle className={cn('font-semibold text-center text-lg')}>
+      <DialogContent className="max-w-[95vw] sm:max-w-sm max-h-[90dvh] p-0 gap-6 overflow-hidden rounded-2xl overflow-y-auto">
+        <DialogHeader className="px-6 pt-6">
+          <DialogTitle className="text-lg font-semibold leading-none tracking-tight text-center">
             {getTitle()}
           </DialogTitle>
         </DialogHeader>
-        <div className='px-6 pt-2 pb-4 space-y-4 overflow-y-scroll flex-1'>
-          {/* Welcome Step - New engaging introduction */}
-          {step === 'welcome' && (
-            <div className='text-center space-y-4'>
-              {/* Hero illustration */}
-              <div className='relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/50 dark:to-indigo-950/50'>
-                <div className='flex justify-center items-center space-x-4 mb-3'>
-                  <div className='relative'>
-                    <UserPlus className='w-12 h-12 text-blue-600' />
-                    <Sparkles className='w-4 h-4 text-yellow-500 absolute -top-1 -right-1 animate-pulse' />
-                  </div>
-                  <Globe className='w-16 h-16 text-blue-700 animate-spin-slow' />
-                  <div className='relative'>
-                    <FileText className='w-12 h-12 text-blue-600' />
-                    <Sparkles className='w-4 h-4 text-yellow-500 absolute -top-1 -left-1 animate-pulse' style={{animationDelay: '0.3s'}} />
-                  </div>
-                </div>
 
-                {/* Benefits */}
-                <div className='grid grid-cols-1 gap-2 text-sm'>
-                  <div className='flex items-center justify-center gap-2 text-blue-700 dark:text-blue-300'>
-                    <Shield className='w-4 h-4' />
-                    Decentralized and censorship-resistant
-                  </div>
-                  <div className='flex items-center justify-center gap-2 text-blue-700 dark:text-blue-300'>
-                    <User className='w-4 h-4' />
-                    You are in control of your data
-                  </div>
-                  <div className='flex items-center justify-center gap-2 text-blue-700 dark:text-blue-300'>
-                    <Globe className='w-4 h-4' />
-                    Join a global network
-                  </div>
-                </div>
-              </div>
-
-              <div className='space-y-3'>
-                <Button
-                  className='w-full rounded-full py-6 text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transform transition-all duration-200 hover:scale-105 shadow-lg'
-                  onClick={() => setStep('generate')}
-                >
-                  <LogIn className='w-5 h-5 mr-2' />
-                  Get Started
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Generate Step - Enhanced with animations */}
+        <div className='px-6 pb-6 space-y-4 overflow-y-auto flex-1'>
+          {/* Generate Step */}
           {step === 'generate' && (
-            <div className='text-center space-y-4'>
-              <div className='relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-purple-100 dark:from-blue-950/50 dark:to-purple-950/50 overflow-hidden'>
-                {/* Animated background elements */}
-                {showSparkles && (
-                  <div className='absolute inset-0'>
-                    {[...Array(12)].map((_, i) => (
-                      <Sparkles
-                        key={i}
-                        className={`absolute w-4 h-4 text-yellow-400 animate-ping`}
-                        style={{
-                          left: `${Math.random() * 80 + 10}%`,
-                          top: `${Math.random() * 80 + 10}%`,
-                          animationDelay: `${Math.random() * 2}s`
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                <div className='relative z-10'>
-                  {isLoading ? (
-                    <div className='space-y-3'>
-                      <div className='relative'>
-                        <Key className='w-20 h-20 text-primary mx-auto animate-pulse' />
-                        <div className='absolute inset-0 flex items-center justify-center'>
-                          <div className='w-24 h-24 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin'></div>
-                        </div>
-                      </div>
-                      <div className='space-y-2'>
-                        <p className='text-lg font-semibold text-primary flex items-center justify-center gap-2'>
-                          <Sparkles className='w-5 h-5' />
-                          Generating your secret key...
-                        </p>
-                        <p className='text-sm text-muted-foreground'>
-                          Creating your secure key
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className='space-y-3'>
-                      <Key className='w-20 h-20 text-primary mx-auto' />
-                      <div className='space-y-2'>
-                        <p className='text-lg font-semibold'>
-                          Ready to generate your secret key?
-                        </p>
-                        <p className='text-sm text-muted-foreground px-5'>
-                          This key will be your password to access applications within the Nostr network.
-                        </p>
-
-                      </div>
-                    </div>
-                  )}
-                </div>
+            <div className='text-center space-y-6'>
+              <div className="flex size-40 text-8xl bg-primary/10 rounded-full items-center justify-center justify-self-center">
+                🔑
               </div>
 
-              {!isLoading && (
-                <Button
-                  className='w-full rounded-full py-6 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transform transition-all duration-200 hover:scale-105 shadow-lg'
-                  onClick={generateKey}
-                  disabled={isLoading}
-                >
-                  <Sparkles className='w-5 h-5 mr-2' />
-                  Generate My Secret Key
-                </Button>
-              )}
+              <Button className="w-full h-12 px-9" onClick={generateKey}>
+                Generate key
+              </Button>
             </div>
           )}
 
-          {/* Download Step - Whimsical and magical */}
+          {/* Download Step */}
           {step === 'download' && (
-            <div className='text-center space-y-4'>
-              {/* Key reveal */}
-              <div className='relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/50 dark:to-indigo-950/50 overflow-hidden'>
-                {/* Sparkles */}
-                <div className='absolute inset-0 pointer-events-none'>
-                  <Sparkles className='absolute top-3 left-4 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '0s'}} />
-                  <Sparkles className='absolute top-6 right-6 w-3 h-3 text-yellow-500 animate-pulse' style={{animationDelay: '0.5s'}} />
-                  <Sparkles className='absolute bottom-4 left-6 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '1s'}} />
-                  <Sparkles className='absolute bottom-3 right-4 w-3 h-3 text-yellow-500 animate-pulse' style={{animationDelay: '1.5s'}} />
-                </div>
-
-                <div className='relative z-10 flex justify-center items-center mb-3'>
-                  <div className='relative'>
-                    <div className='w-16 h-16 bg-gradient-to-br from-blue-200 to-indigo-300 rounded-full flex items-center justify-center shadow-lg animate-pulse'>
-                      <Key className='w-8 h-8 text-indigo-800' />
-                    </div>
-                    <div className='absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center animate-bounce'>
-                      <Sparkles className='w-3 h-3 text-white' />
-                    </div>
-                  </div>
-                </div>
-
-                <div className='relative z-10 space-y-2'>
-                  <p className='text-base font-semibold'>
-                    Your secret key has been generated!
-                  </p>
-
-                  {/* Warning */}
-                  <div className='relative mx-auto max-w-sm'>
-                    <div className='p-3 bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 dark:from-amber-950/40 dark:via-yellow-950/20 dark:to-amber-950/40 rounded-lg border-2 border-amber-300 dark:border-amber-700 shadow-md'>
-                      <div className='flex items-center gap-2 mb-1'>
-                        <FileText className='w-3 h-3 text-amber-700' />
-                        <span className='text-xs font-bold text-amber-800 dark:text-amber-200'>
-                          Important Warning
-                        </span>
-                      </div>
-                      <p className='text-xs text-red-700 dark:text-amber-300 italic'>
-                        This key is your primary and only means of accessing your account. Store it safely and securely.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+            <div className='space-y-4'>
+              <div className="flex size-16 text-4xl bg-primary/10 rounded-full items-center justify-center justify-self-center">
+                🔑
               </div>
 
-              {/* Key vault */}
-
-
-              {/* Security options */}
-              <div className='space-y-3'>
-
-
-                <div className='grid grid-cols-1 gap-2'>
-                  {/* Download Option */}
-                   <Card className={`cursor-pointer transition-all duration-200 ${
-                    keySecured === 'downloaded'
-                       ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950/20'
-                       : 'hover:bg-primary/5 hover:border-primary/20'
-                   }`}>
-                    <CardContent className='p-3'>
-                      <Button
-                        variant="ghost"
-                        className='w-full h-auto p-0 justify-start hover:bg-transparent'
-                        onClick={downloadKey}
-                      >
-                        <div className='flex items-center gap-3 w-full'>
-                          <div className={`p-1.5 rounded-lg ${
-                            keySecured === 'downloaded'
-                               ? 'bg-green-100 dark:bg-green-900'
-                               : 'bg-primary/10'
-                           }`}>
-                            {keySecured === 'downloaded' ? (
-                               <CheckCircle className='w-4 h-4 text-green-600' />
-                             ) : (
-                               <Download className='w-4 h-4 text-primary' />
-                             )}
-                          </div>
-                          <div className='flex-1 text-left'>
-                             <div className='font-medium text-sm'>
-                               Download as File
-                             </div>
-                             <div className='text-xs text-muted-foreground'>
-                               Save as nostr-nsec-key.txt file
-                             </div>
-                          </div>
-                          {keySecured === 'downloaded' && (
-                             <div className='text-xs font-medium text-green-600'>
-                               ✓ Downloaded
-                             </div>
-                           )}
-                        </div>
-                      </Button>
-                    </CardContent>
-                  </Card>
-
-
-                </div>
-
-                {/* Continue button */}
+              <div className="relative">
+                <Input
+                  type={showKey ? "text" : "password"}
+                  value={nsec}
+                  readOnly
+                  className="pr-10 font-mono text-sm"
+                />
                 <Button
-                  className={`w-full rounded-full py-4 text-base font-semibold transform transition-all duration-200 shadow-lg ${
-                    keySecured === 'downloaded'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-950/50 dark:to-purple-950/50 hover:scale-105'
-                      : 'bg-gradient-to-r from-blue-600/60 to-indigo-600/60 text-muted cursor-not-allowed'
-                  }`}
-                  onClick={finishKeySetup}
-                  disabled={keySecured !== 'downloaded'}
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowKey(!showKey)}
                 >
-                  <LogIn className='w-4 h-4 mr-2 flex-shrink-0' />
-                  <span className="text-center leading-tight">
-                    {keySecured === 'none' ? (
-                      <>
-                        Please download your key first
-                      </>
-                    ) : (
-                      <>
-                        <span className="hidden sm:inline">My Key is Safe - Continue</span>
-                        <span className="sm:hidden">Key Secured - Continue</span>
-                      </>
-                    )}
-                  </span>
+                  {showKey ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
                 </Button>
+              </div>
+
+              <Button
+                className="w-full h-12 px-9"
+                onClick={downloadKey}
+              >
+                <Download className="size-4" />
+                Download key
+              </Button>
+
+              <div className='mx-auto max-w-sm'>
+                <div className='p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800'>
+                  <div className='flex items-center gap-2 mb-1'>
+                    <span className='text-xs font-semibold text-amber-800 dark:text-amber-200'>
+                      Important Warning
+                    </span>
+                  </div>
+                  <p className='text-xs text-amber-900 dark:text-amber-300'>
+                    This key is your primary and only means of accessing your account. Store it safely and securely. Please download your key to continue.
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Profile Step - Optional profile setup */}
+          {/* Profile Step */}
           {step === 'profile' && (
             <div className='text-center space-y-4'>
-              {/* Profile setup illustration */}
-              <div className='relative p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/50 dark:to-indigo-950/50 overflow-hidden'>
-                {/* Sparkles */}
-                <div className='absolute inset-0 pointer-events-none'>
-                  <Sparkles className='absolute top-3 left-4 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '0s'}} />
-                  <Sparkles className='absolute top-6 right-6 w-3 h-3 text-yellow-500 animate-pulse' style={{animationDelay: '0.5s'}} />
-                  <Sparkles className='absolute bottom-4 left-6 w-3 h-3 text-yellow-400 animate-pulse' style={{animationDelay: '1s'}} />
-                </div>
-
-                <div className='relative z-10 flex justify-center items-center mb-3'>
-                  <div className='relative'>
-                    <div className='w-16 h-16 bg-gradient-to-br from-blue-200 to-indigo-300 rounded-full flex items-center justify-center shadow-lg'>
-                      <User className='w-8 h-8 text-blue-800' />
-                    </div>
-                    <div className='absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center animate-bounce'>
-                      <Sparkles className='w-3 h-3 text-white' />
-                    </div>
-                  </div>
-                </div>
-
-                <div className='relative z-10 space-y-2'>
-                  <p className='text-base font-semibold'>
-                    Almost there! Let's set up your profile
-                  </p>
-
-                  <p className='text-sm text-muted-foreground'>
-                    Your profile is your identity on Nostr.
-                  </p>
-                </div>
-              </div>
-
               {/* Publishing status indicator */}
               {isPublishing && (
-                <div className='relative p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200 dark:border-blue-800'>
+                <div className='p-4 rounded-lg bg-muted border'>
                   <div className='flex items-center justify-center gap-3'>
-                    <div className='w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin' />
-                    <span className='text-sm font-medium text-blue-700 dark:text-blue-300'>
+                    <div className='w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin' />
+                    <span className='text-sm font-medium'>
                       Publishing your profile...
                     </span>
                   </div>
@@ -602,7 +263,6 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                     value={profileData.name}
                     onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder='Your name'
-                    className='rounded-lg'
                     disabled={isPublishing}
                   />
                 </div>
@@ -616,7 +276,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                     value={profileData.about}
                     onChange={(e) => setProfileData(prev => ({ ...prev, about: e.target.value }))}
                     placeholder='Tell others about yourself...'
-                    className='rounded-lg resize-none'
+                    className='resize-none'
                     rows={3}
                     disabled={isPublishing}
                   />
@@ -632,7 +292,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                       value={profileData.picture}
                       onChange={(e) => setProfileData(prev => ({ ...prev, picture: e.target.value }))}
                       placeholder='https://example.com/your-avatar.jpg'
-                      className='rounded-lg flex-1'
+                      className='flex-1'
                       disabled={isPublishing}
                     />
                     <input
@@ -648,7 +308,6 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                       size='icon'
                       onClick={() => avatarFileInputRef.current?.click()}
                       disabled={isUploading || isPublishing}
-                      className='rounded-lg shrink-0'
                       title='Upload avatar image'
                     >
                       {isUploading ? (
@@ -664,7 +323,7 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
               {/* Action buttons */}
               <div className='space-y-3'>
                 <Button
-                  className='w-full rounded-full py-4 text-base font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transform transition-all duration-200 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
+                  className='w-full'
                   onClick={() => finishSignup(false)}
                   disabled={isPublishing || isUploading}
                 >
@@ -674,24 +333,18 @@ const SignupDialog: React.FC<SignupDialogProps> = ({ isOpen, onClose, onComplete
                       Creating Profile...
                     </>
                   ) : (
-                    <>
-                      <User className='w-4 h-4 mr-2' />
-                      Create Profile & Finish
-                    </>
+                    'Create profile'
                   )}
                 </Button>
 
                 <Button
                   variant='outline'
-                  className='w-full rounded-full py-3 disabled:opacity-50 disabled:cursor-not-allowed'
+                  className='w-full'
                   onClick={() => finishSignup(true)}
                   disabled={isPublishing || isUploading}
                 >
                   {isPublishing ? (
-                    <>
-                      <div className='w-4 h-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin' />
-                      Setting up account...
-                    </>
+                    'Setting up account...'
                   ) : (
                     'Skip for now'
                   )}

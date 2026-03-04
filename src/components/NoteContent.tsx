@@ -45,7 +45,7 @@ export function NoteContent({
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:underline"
+            className="text-blue-500 hover:underline break-all"
           >
             {url}
           </a>
@@ -61,13 +61,18 @@ export function NoteContent({
             parts.push(
               <NostrMention key={`mention-${keyCounter++}`} pubkey={pubkey} />
             );
+          } else if (decoded.type === 'nprofile') {
+            const pubkey = decoded.data.pubkey;
+            parts.push(
+              <NostrMention key={`mention-${keyCounter++}`} pubkey={pubkey} />
+            );
           } else {
             // For other types, just show as a link
             parts.push(
               <Link 
                 key={`nostr-${keyCounter++}`}
                 to={`/${nostrId}`}
-                className="text-blue-500 hover:underline"
+                className="text-blue-500 hover:underline break-all"
               >
                 {fullMatch}
               </Link>

@@ -2,20 +2,20 @@
 // It is important that all functionality in this file is preserved, and should only be modified if explicitly requested.
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Shield, Upload, AlertTriangle, UserPlus, KeyRound, Sparkles, Cloud } from 'lucide-react';
+import { Upload, AlertTriangle, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useLoginActions } from '@/hooks/useLoginActions';
-import { cn } from '@/lib/utils';
+import { DialogTitle } from '@radix-ui/react-dialog';
 
 interface LoginDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onLogin: () => void;
-  onSignup?: () => void;
 }
 
 const validateNsec = (nsec: string) => {
@@ -26,7 +26,7 @@ const validateBunkerUri = (uri: string) => {
   return uri.startsWith('bunker://');
 };
 
-const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onSignup }) => {
+const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFileLoading, setIsFileLoading] = useState(false);
   const [nsec, setNsec] = useState('');
@@ -170,203 +170,167 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
     reader.readAsText(file);
   };
 
-  const handleSignupClick = () => {
-    onClose();
-    if (onSignup) {
-      onSignup();
-    }
-  };
+  const hasExtension = 'nostr' in window;
+  const [isMoreOptionsOpen, setIsMoreOptionsOpen] = useState(false);
 
-  const defaultTab = 'nostr' in window ? 'extension' : 'key';
+  const renderTabs = () => (
+    <Tabs defaultValue="key" className="w-full">
+      <TabsList className="grid w-full grid-cols-2 bg-muted/80 rounded-lg mb-4">
+        <TabsTrigger value="key" className="flex items-center gap-2">
+          <span>Secret Key</span>
+        </TabsTrigger>
+        <TabsTrigger value="bunker" className="flex items-center gap-2">
+          <span>Remote Signer</span>
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value='key' className='space-y-4'>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          handleKeyLogin();
+        }} className='space-y-4'>
+          <div className='space-y-2'>
+            <Input
+              id='nsec'
+              type="password"
+              value={nsec}
+              onChange={(e) => {
+                setNsec(e.target.value);
+                if (errors.nsec) setErrors(prev => ({ ...prev, nsec: undefined }));
+              }}
+              className={`rounded-lg ${
+                errors.nsec ? 'border-red-500 focus-visible:ring-red-500' : ''
+              }`}
+              placeholder='nsec1...'
+              autoComplete="off"
+            />
+            {errors.nsec && (
+              <p className="text-sm text-red-500">{errors.nsec}</p>
+            )}
+          </div>
+
+          <div className="flex space-x-2">
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isLoading || !nsec.trim()}
+              className="flex-1"
+            >
+              {isLoading ? 'Verifying...' : 'Log in'}
+            </Button>
+
+            <input
+              type="file"
+              accept=".txt"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading || isFileLoading}
+              className="px-3"
+            >
+              <Upload className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {errors.file && (
+            <p className="text-sm text-red-500 text-center">{errors.file}</p>
+          )}
+        </form>
+      </TabsContent>
+
+      <TabsContent value='bunker' className='space-y-4'>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          handleBunkerLogin();
+        }} className='space-y-4'>
+          <div className='space-y-2'>
+            <Input
+              id='bunkerUri'
+              value={bunkerUri}
+              onChange={(e) => {
+                setBunkerUri(e.target.value);
+                if (errors.bunker) setErrors(prev => ({ ...prev, bunker: undefined }));
+              }}
+              className={`rounded-lg border-gray-300 dark:border-gray-700 focus-visible:ring-primary ${
+                errors.bunker ? 'border-red-500' : ''
+              }`}
+              placeholder='bunker://'
+              autoComplete="off"
+            />
+            {errors.bunker && (
+              <p className="text-sm text-red-500">{errors.bunker}</p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            size="lg"
+            className='w-full'
+            disabled={isLoading || !bunkerUri.trim()}
+          >
+            {isLoading ? 'Connecting...' : 'Log in'}
+          </Button>
+        </form>
+      </TabsContent>
+    </Tabs>
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
-        className={cn("max-w-[95vw] sm:max-w-md max-h-[90vh] max-h-[90dvh] p-0 overflow-hidden rounded-2xl overflow-y-scroll")}
-      >
-        <DialogHeader className={cn('px-6 pt-6 pb-1 relative')}>
-
-            <DialogDescription className="text-center">
-              Sign up or log in to continue
-            </DialogDescription>
+      <DialogContent className="max-w-[95vw] sm:max-w-sm max-h-[90dvh] p-0 gap-6 overflow-hidden rounded-2xl overflow-y-auto">
+        <DialogHeader className="px-6 pt-6">
+          <DialogTitle className="text-lg font-semibold leading-none tracking-tight text-center">
+            Log in
+          </DialogTitle>
         </DialogHeader>
-        <div className='px-6 pt-2 pb-4 space-y-4 overflow-y-auto flex-1'>
-          {/* Prominent Sign Up Section */}
-          <div className='relative p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/50 dark:to-indigo-950/50 border border-blue-200 dark:border-blue-800 overflow-hidden'>
-            <div className='relative z-10 text-center space-y-3'>
-              <div className='flex justify-center items-center gap-2 mb-2'>
-                <Sparkles className='w-5 h-5 text-blue-600' />
-                <span className='font-semibold text-blue-800 dark:text-blue-200'>
-                  New to Nostr?
-                </span>
-              </div>
-              <p className='text-sm text-blue-700 dark:text-blue-300'>
-                Create a new account to get started. It's free and open.
-              </p>
-              <Button
-                onClick={handleSignupClick}
-                className='w-full rounded-full py-3 text-base font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transform transition-all duration-200 hover:scale-105 shadow-lg border-0'
-              >
-                <UserPlus className='w-4 h-4 mr-2' />
-                <span>Sign Up</span>
-              </Button>
-            </div>
-          </div>
 
-          {/* Divider */}
-          <div className='relative'>
-            <div className='absolute inset-0 flex items-center'>
-              <div className='w-full border-t border-gray-300 dark:border-gray-600'></div>
-            </div>
-            <div className='relative flex justify-center text-sm'>
-              <span className='px-3 bg-background text-muted-foreground'>
-                <span>Or log in</span>
-              </span>
-            </div>
-          </div>
+        <div className="flex size-40 text-8xl bg-primary/10 rounded-full items-center justify-center justify-self-center">
+          🔑
+        </div>
 
-          {/* Login Methods */}
-          <Tabs defaultValue={defaultTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-muted/80 rounded-lg mb-4">
-              <TabsTrigger value="extension" className="flex items-center gap-2">
-                <Shield className="w-4 h-4" />
-                <span>Extension</span>
-              </TabsTrigger>
-              <TabsTrigger value="key" className="flex items-center gap-2">
-                <KeyRound className="w-4 h-4" />
-                <span>Key</span>
-              </TabsTrigger>
-              <TabsTrigger value="bunker" className="flex items-center gap-2">
-                <Cloud className="w-4 h-4" />
-                <span>Bunker</span>
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value='extension' className='space-y-3 bg-muted'>
+        <div className='px-6 pb-6 space-y-4 overflow-y-auto'>
+          {/* Extension Login Button - shown if extension is available */}
+          {hasExtension && (
+            <div className="space-y-4">
               {errors.extension && (
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>{errors.extension}</AlertDescription>
                 </Alert>
               )}
-              <div className='text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-800'>
-                <Shield className='w-12 h-12 mx-auto mb-3 text-primary' />
-                <p className='text-sm text-gray-600 dark:text-gray-300 mb-4'>
-                  Login with one click using the browser extension
-                </p>
-                <div className="flex justify-center">
-                  <Button
-                    className='w-full rounded-full py-4'
-                    onClick={handleExtensionLogin}
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'Logging in...' : 'Login with Extension'}
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
+              <Button
+                className="w-full h-12 px-9"
+                onClick={handleExtensionLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Logging in...' : 'Log in with Extension'}
+              </Button>
+            </div>
+          )}
 
-            <TabsContent value='key' className='space-y-4'>
-              <div className='space-y-4'>
-                <div className='space-y-2'>
-                  <label htmlFor='nsec' className='text-sm font-medium'>
-                    Secret Key (nsec)
-                  </label>
-                  <Input
-                    id='nsec'
-                    type="password"
-                    value={nsec}
-                    onChange={(e) => {
-                      setNsec(e.target.value);
-                      if (errors.nsec) setErrors(prev => ({ ...prev, nsec: undefined }));
-                    }}
-                    className={`rounded-lg ${
-                      errors.nsec ? 'border-red-500 focus-visible:ring-red-500' : ''
-                    }`}
-                    placeholder='nsec1...'
-                    autoComplete="off"
-                  />
-                  {errors.nsec && (
-                    <p className="text-sm text-red-500">{errors.nsec}</p>
-                  )}
-                </div>
+          {/* Tabs - wrapped in collapsible if extension is available, otherwise shown directly */}
+          {hasExtension ? (
+            <Collapsible className="space-y-4" open={isMoreOptionsOpen} onOpenChange={setIsMoreOptionsOpen}>
+              <CollapsibleTrigger asChild>
+                <button className="w-full flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <span>More Options</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${isMoreOptionsOpen ? 'rotate-180' : ''}`} />
+                </button>
+              </CollapsibleTrigger>
 
-                <Button
-                  className='w-full rounded-full py-3'
-                  onClick={handleKeyLogin}
-                  disabled={isLoading || !nsec.trim()}
-                >
-                  {isLoading ? 'Verifying...' : 'Log In'}
-                </Button>
-
-                <div className='relative'>
-                  <div className='absolute inset-0 flex items-center'>
-                    <div className='w-full border-t border-muted'></div>
-                  </div>
-                  <div className='relative flex justify-center text-xs'>
-                    <span className='px-2 bg-background text-muted-foreground'>
-                      or
-                    </span>
-                  </div>
-                </div>
-
-                <div className='text-center'>
-                  <input
-                    type='file'
-                    accept='.txt'
-                    className='hidden'
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                  />
-                  <Button
-                    variant='outline'
-                    className='w-full'
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isLoading || isFileLoading}
-                  >
-                    <Upload className='w-4 h-4 mr-2' />
-                    {isFileLoading ? 'Reading File...' : 'Upload Your Key File'}
-                  </Button>
-                  {errors.file && (
-                    <p className="text-sm text-red-500 mt-2">{errors.file}</p>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value='bunker' className='space-y-3 bg-muted'>
-              <div className='space-y-2'>
-                <label htmlFor='bunkerUri' className='text-sm font-medium text-gray-700 dark:text-gray-400'>
-                  Bunker URI
-                </label>
-                <Input
-                  id='bunkerUri'
-                  value={bunkerUri}
-                  onChange={(e) => {
-                    setBunkerUri(e.target.value);
-                    if (errors.bunker) setErrors(prev => ({ ...prev, bunker: undefined }));
-                  }}
-                  className={`rounded-lg border-gray-300 dark:border-gray-700 focus-visible:ring-primary ${
-                    errors.bunker ? 'border-red-500' : ''
-                  }`}
-                  placeholder='bunker://'
-                  autoComplete="off"
-                />
-                {errors.bunker && (
-                  <p className="text-sm text-red-500">{errors.bunker}</p>
-                )}
-              </div>
-
-              <div className="flex justify-center">
-                <Button
-                  className='w-full rounded-full py-4'
-                  onClick={handleBunkerLogin}
-                  disabled={isLoading || !bunkerUri.trim()}
-                >
-                  {isLoading ? 'Connecting...' : 'Login with Bunker'}
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
+              <CollapsibleContent>
+                {renderTabs()}
+              </CollapsibleContent>
+            </Collapsible>
+          ) : (
+            renderTabs()
+          )}
         </div>
       </DialogContent>
     </Dialog>
