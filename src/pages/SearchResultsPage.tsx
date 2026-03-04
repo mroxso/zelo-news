@@ -42,7 +42,7 @@ export default function SearchResultsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <div className="container max-w-6xl py-8 space-y-8">
+        <div className="container py-8 space-y-8">
         {/* Header */}
         <div className="space-y-4">
           <Button variant="ghost" onClick={() => window.history.back()}>
@@ -74,7 +74,7 @@ export default function SearchResultsPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-6xl py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="container py-8 px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header with back button and search */}
         <div className="space-y-4">
           <Button variant="ghost" onClick={() => window.history.back()}>

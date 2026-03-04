@@ -16,7 +16,7 @@ export default function EditPostPage() {
   }
 
   return (
-    <div className="container max-w-7xl py-6 px-4 sm:px-6 lg:px-8">
+    <div className="container py-6 px-4 sm:px-6 lg:px-8">
       <ProfessionalBlogPostForm editIdentifier={identifier} />
     </div>
   );

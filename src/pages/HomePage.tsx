@@ -45,7 +45,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-6xl py-8 px-4 sm:px-6 lg:px-8 space-y-12">
+      <div className="container py-8 px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Search bar */}
         <div className="max-w-2xl mx-auto">
           <SearchBar />

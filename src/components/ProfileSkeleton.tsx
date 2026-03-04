@@ -4,7 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export function ProfileSkeleton() {
   return (
     <div className="min-h-screen">
-      <div className="container max-w-6xl py-0 md:py-8">
+      <div className="container py-0 md:py-8">
         {/* Banner skeleton */}
         <Skeleton className="h-48 md:h-64 w-full md:rounded-t-lg" />
         

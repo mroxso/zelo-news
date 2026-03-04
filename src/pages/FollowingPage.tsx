@@ -27,7 +27,7 @@ export default function FollowingPage() {
   if (!user) {
     return (
       <div className="min-h-screen">
-        <div className="container max-w-6xl py-12 px-4 sm:px-6 lg:px-8">
+        <div className="container py-12 px-4 sm:px-6 lg:px-8">
           <Card className="border-dashed">
             <CardContent className="py-12 px-8 text-center">
               <div className="max-w-sm mx-auto space-y-6">
@@ -51,7 +51,7 @@ export default function FollowingPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-6xl py-8 px-4 space-y-8">
+      <div className="container py-8 px-4 space-y-8">
         {/* Header */}
         <div className="space-y-2">
           <div className="flex items-center gap-3">

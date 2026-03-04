@@ -91,7 +91,7 @@ export function EventPage({ eventId, relayHints, authorPubkey, kind }: EventPage
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <div className="container max-w-3xl py-8 px-4">
+        <div className="container py-8 px-4">
           <Skeleton className="h-8 w-24 mb-6" />
           <Card>
             <CardHeader>
@@ -123,7 +123,7 @@ export function EventPage({ eventId, relayHints, authorPubkey, kind }: EventPage
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-3xl py-8 px-4">
+      <div className="container py-8 px-4">
         {/* Back button */}
         <Button
           variant="ghost"

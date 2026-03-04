@@ -10,7 +10,7 @@ export default function HighlightsPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-4xl py-8 px-4 sm:px-6 lg:px-8">
+      <div className="container py-8 px-4 sm:px-6 lg:px-8">
         <div className="space-y-6">
           {/* Header */}
           <div className="space-y-2">

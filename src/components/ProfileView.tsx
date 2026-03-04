@@ -78,7 +78,7 @@ export function ProfileView({
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-6xl py-0 md:py-8 px-0 md:px-4">
+      <div className="container py-0 md:py-8 px-0 md:px-4">
         {/* Banner */}
         <div className="relative h-48 md:h-64 w-full bg-gradient-to-br from-primary/20 to-primary/5 md:rounded-t-lg overflow-hidden">
           {banner && (

@@ -16,7 +16,7 @@ export default function ArticleByDTagPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <div className="container max-w-4xl py-8 px-4 sm:px-6 lg:px-8">
+        <div className="container py-8 px-4 sm:px-6 lg:px-8">
           <Skeleton className="h-8 w-24 mb-6" />
           <div className="space-y-4">
             <Skeleton className="h-12 w-3/4" />

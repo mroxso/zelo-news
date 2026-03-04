@@ -117,7 +117,7 @@ export function ArticleView({ post }: ArticleViewProps) {
     <div className="min-h-screen">
       <ArticleProgressBar />
       
-      <article className="container max-w-4xl py-8 px-4 sm:px-6 lg:px-8">
+      <article className="container py-8 px-4 sm:px-6 lg:px-8">
         <Button
           variant="ghost"
           size="sm"

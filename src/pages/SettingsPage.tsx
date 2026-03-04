@@ -26,7 +26,7 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="container max-w-4xl py-8 px-4">
+    <div className="container py-8 px-4">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

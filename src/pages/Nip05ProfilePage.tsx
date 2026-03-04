@@ -53,7 +53,7 @@ export default function Nip05ProfilePage() {
   if (isError || !pubkey) {
     return (
       <div className="min-h-screen">
-        <div className="container max-w-6xl py-8">
+        <div className="container py-8">
           <Card className="border-dashed">
             <CardContent className="py-12 px-8 text-center">
               <div className="max-w-sm mx-auto space-y-6">

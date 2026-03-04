@@ -90,7 +90,7 @@ export function NotePage({ eventId }: NotePageProps) {
   if (isLoading) {
     return (
       <div className="min-h-screen">
-        <div className="container max-w-2xl py-8 px-4">
+        <div className="container py-8 px-4">
           <Skeleton className="h-8 w-24 mb-6" />
           <Card>
             <CardHeader>
@@ -122,7 +122,7 @@ export function NotePage({ eventId }: NotePageProps) {
 
   return (
     <div className="min-h-screen">
-      <div className="container max-w-2xl py-8 px-4">
+      <div className="container py-8 px-4">
         {/* Back button */}
         <Button
           variant="ghost"
