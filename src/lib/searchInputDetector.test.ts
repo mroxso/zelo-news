@@ -68,4 +68,16 @@ describe('detectSearchInputType', () => {
     expect(result.type).toBe('hashtag');
     expect(result.value).toBe('#bitcoin');
   });
+
+  it('detects hashtags with capital letters', () => {
+    const result = detectSearchInputType('#BR');
+    expect(result.type).toBe('hashtag');
+    expect(result.value).toBe('#BR');
+  });
+
+  it('detects hashtags with mixed case', () => {
+    const result = detectSearchInputType('#Bitcoin');
+    expect(result.type).toBe('hashtag');
+    expect(result.value).toBe('#Bitcoin');
+  });
 });
